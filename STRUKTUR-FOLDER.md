@@ -1,6 +1,6 @@
 # 📁 Panduan Struktur Folder — PBL-TRPL210
 > **Proyek:** Aplikasi E-Outsourcing PT Ecogreen Oleochemicals Batam Plant  
-> **Framework:** Laravel 12 
+> **Framework:** Laravel 12 (PHP 8.2+)  
 > **Anggota Tim:** William · Kelvin · Rafly · Rivaldi · Akut  
 > ⚠️ **Baca dokumen ini sebelum mulai menulis kode!**
 
@@ -19,6 +19,9 @@ Sebelum membaca struktur folder, pahami dulu keputusan arsitektur yang sudah dis
 | Storage dokumen | Local storage (`storage/app/private/`) | Cukup untuk skala PBL, akses wajib lewat controller |
 | Aset statis | `public/images/` | File publik, tidak perlu lewat Laravel |
 | CSRF | Token dikirim di setiap header AJAX | Wajib untuk semua request POST/PUT/DELETE |
+| CSS Framework | Tailwind CSS | Default Laravel 12, cocok dengan arsitektur HTML shell |
+| Pemisahan CSS | Per role di `resources/css/` | CSS spesifik hanya dimuat di halaman yang relevan |
+| Paginasi | `paginate(20)` di ApiController + render di JS | Untuk halaman dengan data yang tumbuh terus |
 
 ### Format JSON Response (WAJIB diikuti semua API Controller)
 
@@ -330,6 +333,67 @@ resources/views/
 
 ---
 
+## 📂 Detail: `resources/css/`
+
+CSS dipisah per role agar setiap halaman hanya memuat CSS yang relevan, tidak membebani halaman dengan style yang tidak dipakai.
+
+```
+resources/css/
+├── app.css             → CSS global: warna, font, komponen yang dipakai semua role
+├── karyawan.css        → CSS khusus halaman-halaman karyawan
+├── admin.css           → CSS khusus halaman-halaman admin outsource
+├── departemen.css      → CSS khusus halaman user departemen
+├── hr.css              → CSS khusus halaman-halaman HR
+└── super-admin.css     → CSS khusus halaman-halaman super admin
+```
+
+Daftarkan semua file di `vite.config.js`:
+
+```js
+// vite.config.js
+export default defineConfig({
+    plugins: [laravel({
+        input: [
+            'resources/css/app.css',
+            'resources/css/karyawan.css',
+            'resources/css/admin.css',
+            'resources/css/departemen.css',
+            'resources/css/hr.css',
+            'resources/css/super-admin.css',
+            'resources/js/app.js',
+        ],
+        refresh: true,
+    })],
+});
+```
+
+Di `layouts/app.blade.php`, tambahkan slot untuk CSS tambahan per halaman:
+
+```blade
+@vite('resources/css/app.css')
+@stack('styles')
+```
+
+Di setiap halaman Blade, inject CSS role yang sesuai:
+
+```blade
+{{-- contoh di karyawan/absensi.blade.php --}}
+@extends('layouts.app')
+
+@push('styles')
+    @vite('resources/css/karyawan.css')
+@endpush
+```
+
+### Aturan penulisan CSS
+
+- `app.css` — hanya untuk style yang benar-benar dipakai di lebih dari satu role
+- CSS per role tidak boleh saling import satu sama lain
+- Tailwind utility class ditulis langsung di Blade, **bukan** di file CSS
+- File CSS digunakan untuk style kustom yang tidak bisa dicapai dengan Tailwind saja
+
+---
+
 ## 📂 Detail: `resources/js/`
 
 File JS dikelompokkan per role dan per fitur. Setiap file bertanggung jawab atas satu halaman.
@@ -369,6 +433,37 @@ resources/js/
     ├── izin.js
     └── riwayat.js
 ```
+
+---
+
+## 🎨 Tailwind CSS — Panduan Penggunaan
+
+Tailwind CSS adalah CSS framework default Laravel 12. Utility class ditulis langsung di Blade, bukan di file CSS.
+
+### Konfigurasi `tailwind.config.js`
+
+Karena konten HTML juga di-generate oleh JS (AJAX), path JS wajib ditambahkan agar Tailwind tidak membuang class yang dipakai di JS:
+
+```js
+// tailwind.config.js
+export default {
+    content: [
+        './resources/views/**/*.blade.php',
+        './resources/js/**/*.js',       // ← wajib, untuk class yang ditulis di JS
+    ],
+    theme: {
+        extend: {},
+    },
+    plugins: [],
+}
+```
+
+### Aturan penggunaan Tailwind di proyek ini
+
+- Utility class Tailwind ditulis di file **Blade** untuk elemen statis
+- Untuk elemen yang dibuat dinamis oleh JS, pastikan class-nya juga muncul di file **JS** agar ter-scan oleh Tailwind
+- Hindari menulis `style=""` inline — gunakan utility class Tailwind
+- Gunakan file CSS di `resources/css/` hanya untuk style yang **tidak bisa** dicapai dengan Tailwind
 
 ---
 
@@ -539,6 +634,97 @@ Route::middleware('auth')->group(function () {
 
 ---
 
+## 📄 Aturan Paginasi
+
+### Halaman yang WAJIB pakai paginasi
+
+| Halaman | Alasan |
+|---|---|
+| `karyawan/riwayat.blade.php` | Record absensi tumbuh setiap hari |
+| `hr/audit.blade.php` | Setiap aksi approve/reject menulis satu entri |
+| `hr/rekap.blade.php` | Menampilkan data semua karyawan semua perusahaan |
+| `admin-outsource/karyawan.blade.php` | Jumlah karyawan bisa terus bertambah |
+| `admin-outsource/validasi-absensi.blade.php` | Data absensi harian seluruh karyawan |
+| `user-departemen/validasi-lembur.blade.php` | Pengajuan lembur bisa menumpuk |
+| `hr/dokumen.blade.php` | Dokumen izin dari semua karyawan |
+
+### Halaman yang TIDAK perlu paginasi
+
+| Halaman | Alasan |
+|---|---|
+| `karyawan/jadwal.blade.php` | Sudah dibatasi per bulan secara natural |
+| `super-admin/konfigurasi-area.blade.php` | Data sedikit dan jarang berubah |
+| `super-admin/master-data.blade.php` | Jumlah departemen & shift terbatas |
+
+### Implementasi paginasi
+
+**Di ApiController** — gunakan `paginate()` bukan `get()`:
+
+```php
+// RiwayatAbsensiApiController.php
+public function index(Request $request)
+{
+    $data = Absensi::where('id_karyawan', auth()->id())
+                   ->orderBy('tanggal_absensi', 'desc')
+                   ->paginate(20);
+
+    return response()->json(['status' => true, 'message' => 'OK', 'data' => $data]);
+}
+```
+
+Laravel otomatis menambahkan metadata paginasi di dalam response JSON:
+
+```json
+{
+    "status": true,
+    "message": "OK",
+    "data": {
+        "current_page": 1,
+        "last_page": 5,
+        "per_page": 20,
+        "total": 98,
+        "data": [ ... ]
+    }
+}
+```
+
+**Di file JS** — terima metadata dan render tombol navigasi:
+
+```javascript
+// riwayat.js
+let currentPage = 1;
+
+function loadRiwayat(page = 1) {
+    $.get(`/api/karyawan/riwayat?page=${page}`, function(res) {
+        renderTabel(res.data.data);
+        renderPaginasi(res.data);
+        currentPage = res.data.current_page;
+    });
+}
+
+function renderPaginasi(meta) {
+    const prev = meta.current_page > 1;
+    const next = meta.current_page < meta.last_page;
+
+    $('#paginasi').html(`
+        <button ${prev ? '' : 'disabled'} onclick="loadRiwayat(${meta.current_page - 1})">Prev</button>
+        <span>Halaman ${meta.current_page} dari ${meta.last_page}</span>
+        <button ${next ? '' : 'disabled'} onclick="loadRiwayat(${meta.current_page + 1})">Next</button>
+    `);
+}
+
+loadRiwayat();
+```
+
+**Di Blade** — cukup sediakan container kosong:
+
+```blade
+<div id="tabel-container"></div>
+<div id="paginasi"></div>
+```
+
+---
+
 ## 📝 Konvensi Penamaan Tim
 
 | Tipe File            | Format                        | Contoh                              |
@@ -618,6 +804,9 @@ php artisan storage:link                         # wajib dijalankan sekali untuk
 7. **Logika GPS (Haversine)** diletakkan di `GpsValidationService.php`, bukan di Controller.
 8. **Setiap aksi approve/reject** wajib menulis entri ke tabel `audit_log` — implementasikan di Service, bukan Controller.
 9. **Batas lembur retroaktif H+1** divalidasi di `LemburService`. Pengajuan melewati batas otomatis berstatus `kadaluarsa`.
+10. **Tailwind utility class** ditulis di Blade dan JS, bukan di file CSS. File CSS di `resources/css/` hanya untuk style kustom yang tidak bisa dicapai Tailwind.
+11. **Path `resources/js/`** wajib didaftarkan di `tailwind.config.js` agar class yang ditulis di JS tidak dibuang saat build.
+12. **Halaman dengan data yang tumbuh** (riwayat absensi, audit log, daftar karyawan, dll.) wajib menggunakan `paginate()` di ApiController — jangan gunakan `get()` atau `all()`.
 
 ---
 
