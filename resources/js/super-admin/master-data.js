@@ -2,8 +2,10 @@
  * resources/js/super-admin/master-data.js
  * F18 — Master Data: Perusahaan, Departemen, Shift
  *
- * Fix: deteksi halaman via path segment terakhir agar lebih akurat.
- * Path: /super-admin/master-data/perusahaan → segment[-1] = 'perusahaan'
+ * Fix:
+ * 1. ID tbody disesuaikan dengan Blade: tbody-perusahaan / tbody-departemen / tbody-shift
+ * 2. Deteksi halaman via path segment terakhir (sudah benar, dipertahankan)
+ * 3. Tabel ID selector disesuaikan per halaman
  */
 
 import {
@@ -59,7 +61,7 @@ function initPerusahaan() {
 
 async function loadPerusahaan(page = 1) {
     currentPage = page;
-    showSkeleton(5);
+    showSkeleton(5, 'tbody-perusahaan');
 
     const params = new URLSearchParams({ page });
     if (searchQuery)  params.set('search', searchQuery);
@@ -89,7 +91,7 @@ async function loadPerusahaan(page = 1) {
 }
 
 function renderPerusahaan(rows) {
-    const tbody = document.getElementById('tbody-data');
+    const tbody = document.getElementById('tbody-perusahaan');
     if (!tbody) return;
 
     if (!rows.length) {
@@ -262,7 +264,7 @@ function initDepartemen() {
 
 async function loadDepartemen(page = 1) {
     currentPage = page;
-    showSkeleton(4);
+    showSkeleton(4, 'tbody-departemen');
 
     const params = new URLSearchParams({ page });
     if (searchQuery)  params.set('search', searchQuery);
@@ -291,7 +293,7 @@ async function loadDepartemen(page = 1) {
 }
 
 function renderDepartemen(rows) {
-    const tbody = document.getElementById('tbody-data');
+    const tbody = document.getElementById('tbody-departemen');
     if (!tbody) return;
 
     if (!rows.length) {
@@ -453,7 +455,7 @@ function initShift() {
 }
 
 async function loadShift() {
-    showSkeleton(6);
+    showSkeleton(6, 'tbody-shift');
     try {
         const res  = await apiFetch('/api/super-admin/shift');
         const json = await res.json();
@@ -474,7 +476,7 @@ async function loadShift() {
 }
 
 function renderShift(rows) {
-    const tbody = document.getElementById('tbody-data');
+    const tbody = document.getElementById('tbody-shift');
     if (!tbody) return;
 
     if (!rows.length) {
@@ -655,9 +657,10 @@ function bindCommonEvents(loadFn, simpanFn, modalId, formId) {
         await simpanFn();
     });
 
-    document.getElementById(`close-${modalId.replace('modal-', '')}`)
+    const modalName = modalId.replace('modal-', '');
+    document.getElementById(`close-${modalName}`)
         ?.addEventListener('click', () => closeModal(modalId));
-    document.getElementById(`cancel-${modalId.replace('modal-', '')}`)
+    document.getElementById(`cancel-${modalName}`)
         ?.addEventListener('click', () => closeModal(modalId));
 }
 
@@ -722,8 +725,12 @@ function aksiButtons(id, nama) {
     `;
 }
 
-function showSkeleton(cols) {
-    const el = document.getElementById('tbody-data');
+/**
+ * @param {number} cols   — jumlah kolom tabel
+ * @param {string} tbodyId — ID elemen tbody yang akan diisi skeleton
+ */
+function showSkeleton(cols, tbodyId) {
+    const el = document.getElementById(tbodyId);
     if (!el) return;
     el.innerHTML = `
         <tr><td colspan="${cols}">
