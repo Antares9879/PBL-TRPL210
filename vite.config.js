@@ -9,16 +9,21 @@ export default defineConfig({
                 // ── CSS global ──────────────────────────────────────────────
                 'resources/css/app.css',
 
-                // ── CSS per halaman ─────────────────────────────────────────
+                // ── CSS per role ────────────────────────────────────────────
                 'resources/css/login.css',
-                'resources/css/super-admin.css',     // Layout utama + semua dashboard
+                'resources/css/super-admin.css',
 
                 // ── JS global ───────────────────────────────────────────────
                 'resources/js/app.js',
 
-                // ── JS per halaman ──────────────────────────────────────────
+                // ── JS auth ─────────────────────────────────────────────────
                 'resources/js/auth/login.js',
+
+                // ── JS Super Admin ──────────────────────────────────────────
                 'resources/js/super-admin/dashboard.js',
+                'resources/js/super-admin/akun.js',
+                'resources/js/super-admin/master-data.js',
+                'resources/js/super-admin/konfigurasi-area.js',
             ],
             refresh: true,
         }),
