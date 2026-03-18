@@ -18,10 +18,8 @@
 </head>
 <body class="app-body">
 
-    {{-- ══ SIDEBAR ══════════════════════════════════════════════════════════ --}}
     <aside class="sidebar" id="sidebar">
 
-        {{-- Logo --}}
         <div class="sidebar-brand">
             <div class="sidebar-brand-icon">
                 <img src="{{ asset('images/logo/logo-ecogreen.webp') }}"
@@ -34,25 +32,23 @@
             </div>
         </div>
 
-        {{-- Role badge --}}
         <div class="sidebar-role-badge">
             <span class="sidebar-role-dot"></span>
             @yield('sidebar-role', 'Super Administrator')
         </div>
 
-        {{-- Navigation --}}
         <nav class="sidebar-nav">
             @yield('sidebar-nav')
         </nav>
 
-        {{-- User info di bawah sidebar --}}
         <div class="sidebar-user">
             <div class="sidebar-user-avatar">
-                {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                {{-- Gunakan nama_lengkap sesuai kolom tabel pengguna --}}
+                {{ strtoupper(substr(auth()->user()->nama_lengkap ?? 'U', 0, 1)) }}
             </div>
             <div class="sidebar-user-info">
-                <span class="sidebar-user-name">{{ auth()->user()->name ?? 'Pengguna' }}</span>
-                <span class="sidebar-user-role">{{ auth()->user()->role ?? 'super_admin' }}</span>
+                <span class="sidebar-user-name">{{ auth()->user()->nama_lengkap ?? 'Pengguna' }}</span>
+                <span class="sidebar-user-role">{{ auth()->user()->role ?? '-' }}</span>
             </div>
             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none">
                 @csrf
@@ -69,10 +65,8 @@
 
     </aside>
 
-    {{-- ══ MAIN AREA ════════════════════════════════════════════════════════ --}}
     <div class="app-main" id="app-main">
 
-        {{-- Topbar --}}
         <header class="topbar">
             <div class="topbar-left">
                 <button class="topbar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar">
@@ -90,7 +84,7 @@
             </div>
 
             <div class="topbar-right">
-                <button class="topbar-icon-btn" aria-label="Notifikasi" id="notif-btn">
+                <button class="topbar-icon-btn" aria-label="Notifikasi">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
@@ -98,12 +92,11 @@
                     <span class="topbar-notif-dot"></span>
                 </button>
                 <div class="topbar-avatar">
-                    {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                    {{ strtoupper(substr(auth()->user()->nama_lengkap ?? 'U', 0, 1)) }}
                 </div>
             </div>
         </header>
 
-        {{-- Page Content --}}
         <main class="app-content">
             @yield('content')
         </main>
