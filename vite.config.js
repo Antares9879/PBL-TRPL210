@@ -6,15 +6,19 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                // CSS global
+                // ── CSS global ──────────────────────────────────────────────
                 'resources/css/app.css',
 
-                // CSS per halaman (di-load hanya di halaman yang relevan)
+                // ── CSS per halaman ─────────────────────────────────────────
                 'resources/css/login.css',
+                'resources/css/super-admin.css',     // Layout utama + semua dashboard
 
-                // JS global & per halaman
+                // ── JS global ───────────────────────────────────────────────
                 'resources/js/app.js',
+
+                // ── JS per halaman ──────────────────────────────────────────
                 'resources/js/auth/login.js',
+                'resources/js/super-admin/dashboard.js',
             ],
             refresh: true,
         }),
