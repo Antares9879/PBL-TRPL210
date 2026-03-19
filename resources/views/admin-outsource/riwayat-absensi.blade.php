@@ -16,7 +16,7 @@
         <div>
             <h1 class="page-title">Riwayat Absensi</h1>
             <p class="page-subtitle">
-                Rekap dan riwayat kehadiran seluruh karyawan outsource (F11)
+                Rekap dan riwayat kehadiran seluruh karyawan outsource.
             </p>
         </div>
     </div>
@@ -25,13 +25,13 @@
         <div class="dash-panel-header">
             <div>
                 <h2 class="dash-panel-title">Rekap Absensi</h2>
-                <p class="dash-panel-subtitle">Menunggu endpoint <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/riwayat-absensi</code></p>
+                <p class="dash-panel-subtitle">Data dimuat via <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/validasi-absensi</code></p>
             </div>
             <span class="dash-panel-tag">F11</span>
         </div>
         <div class="dash-panel-body">
             <div class="table-wrap">
-                <table class="data-table">
+                <table class="data-table" id="tabel-riwayat-absensi">
                     <thead>
                         <tr>
                             <th>Karyawan</th>
@@ -45,40 +45,20 @@
                             <th>Status Validasi</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @for ($i = 0; $i < 8; $i++)
+                    <tbody id="tbody-riwayat-absensi">
                         <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:8px;">
-                                    <div class="skeleton-line" style="width:30px;height:30px;border-radius:7px;flex-shrink:0;"></div>
-                                    <div class="skeleton-line" style="width:100px;height:10px;"></div>
+                            <td colspan="9">
+                                <div class="skeleton-wrap" style="padding:8px 0;">
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line skeleton-line--medium"></div>
+                                    <div class="skeleton-line skeleton-line--short"></div>
                                 </div>
                             </td>
-                            <td><div class="skeleton-line" style="width:80px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:70px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:48px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:48px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:50px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:50px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:60px;height:20px;border-radius:999px;"></div></td>
-                            <td><div class="skeleton-line" style="width:60px;height:20px;border-radius:999px;"></div></td>
                         </tr>
-                        @endfor
                     </tbody>
                 </table>
             </div>
-            {{-- Placeholder paginasi --}}
-            <div style="
-                display:flex;align-items:center;justify-content:space-between;
-                padding-top:16px;margin-top:4px;
-                border-top:1px solid var(--surface-border);
-            ">
-                <div class="skeleton-line" style="width:160px;height:10px;"></div>
-                <div style="display:flex;gap:8px;">
-                    <div class="skeleton-line" style="width:60px;height:30px;border-radius:8px;"></div>
-                    <div class="skeleton-line" style="width:60px;height:30px;border-radius:8px;"></div>
-                </div>
-            </div>
+            <div id="paginasi-riwayat"></div>
         </div>
     </div>
 

@@ -16,7 +16,7 @@
         <div>
             <h1 class="page-title">Kelola Izin</h1>
             <p class="page-subtitle">
-                Persetujuan pengajuan izin dan verifikasi dokumen pendukung karyawan (F04–F05)
+                Persetujuan pengajuan izin dan verifikasi dokumen pendukung karyawan outsource untuk memastikan proses administrasi yang tepat dan akurat.
             </p>
         </div>
     </div>
@@ -29,7 +29,7 @@
             <div class="dash-panel-header">
                 <div>
                     <h2 class="dash-panel-title">Pengajuan Izin</h2>
-                    <p class="dash-panel-subtitle">Menunggu endpoint <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/izin</code></p>
+                    <p class="dash-panel-subtitle">Data dimuat via <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/validasi-izin</code></p>
                 </div>
                 <span class="dash-panel-tag">F04</span>
             </div>
@@ -41,36 +41,25 @@
                                 <th>Karyawan</th>
                                 <th>Jenis Izin</th>
                                 <th>Tanggal</th>
+                                <th>Dokumen</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @for ($i = 0; $i < 6; $i++)
+                        <tbody id="tbody-izin">
                             <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px;">
-                                        <div class="skeleton-line" style="width:30px;height:30px;border-radius:7px;flex-shrink:0;"></div>
-                                        <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
-                                            <div class="skeleton-line" style="width:90px;height:10px;"></div>
-                                            <div class="skeleton-line skeleton-line--short" style="height:8px;"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td><div class="skeleton-line" style="width:80px;height:10px;"></div></td>
-                                <td><div class="skeleton-line" style="width:72px;height:10px;"></div></td>
-                                <td><div class="skeleton-line" style="width:55px;height:20px;border-radius:999px;"></div></td>
-                                <td>
-                                    <div style="display:flex;gap:6px;">
-                                        <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
-                                        <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
+                                <td colspan="6">
+                                    <div class="skeleton-wrap" style="padding:8px 0;">
+                                        <div class="skeleton-line"></div>
+                                        <div class="skeleton-line skeleton-line--medium"></div>
+                                        <div class="skeleton-line skeleton-line--short"></div>
                                     </div>
                                 </td>
                             </tr>
-                            @endfor
                         </tbody>
                     </table>
                 </div>
+                <div id="paginasi-izin"></div>
             </div>
         </div>
 
@@ -79,7 +68,7 @@
             <div class="dash-panel-header">
                 <div>
                     <h2 class="dash-panel-title">Verifikasi Dokumen</h2>
-                    <p class="dash-panel-subtitle">Menunggu endpoint <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/izin/dokumen</code></p>
+                    <p class="dash-panel-subtitle">Data dimuat via <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/validasi-izin</code></p>
                 </div>
                 <span class="dash-panel-tag">F05</span>
             </div>
@@ -90,31 +79,22 @@
                             <tr>
                                 <th>Karyawan</th>
                                 <th>Jenis Izin</th>
-                                <th>Dokumen</th>
-                                <th>Status Dok.</th>
+                                <th>File Dokumen</th>
+                                <th>Jumlah</th>
+                                <th>Status Izin</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @for ($i = 0; $i < 6; $i++)
+                        <tbody id="tbody-dokumen-verifikasi">
                             <tr>
-                                <td>
-                                    <div style="display:flex;align-items:center;gap:8px;">
-                                        <div class="skeleton-line" style="width:30px;height:30px;border-radius:7px;flex-shrink:0;"></div>
-                                        <div class="skeleton-line" style="width:90px;height:10px;"></div>
-                                    </div>
-                                </td>
-                                <td><div class="skeleton-line" style="width:80px;height:10px;"></div></td>
-                                <td><div class="skeleton-line" style="width:100px;height:10px;"></div></td>
-                                <td><div class="skeleton-line" style="width:70px;height:20px;border-radius:999px;"></div></td>
-                                <td>
-                                    <div style="display:flex;gap:6px;">
-                                        <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
-                                        <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
+                                <td colspan="6">
+                                    <div class="skeleton-wrap" style="padding:8px 0;">
+                                        <div class="skeleton-line"></div>
+                                        <div class="skeleton-line skeleton-line--medium"></div>
+                                        <div class="skeleton-line skeleton-line--short"></div>
                                     </div>
                                 </td>
                             </tr>
-                            @endfor
                         </tbody>
                     </table>
                 </div>

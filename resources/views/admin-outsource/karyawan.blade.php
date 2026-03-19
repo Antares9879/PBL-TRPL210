@@ -16,7 +16,7 @@
         <div>
             <h1 class="page-title">Data Karyawan</h1>
             <p class="page-subtitle">
-                Kelola karyawan outsource — tambah, edit, aktif/nonaktif, reset password (F07)
+                Kelola karyawan outsource — tambah, edit, aktif/nonaktif, reset password, dan pastikan data karyawan selalu akurat untuk administrasi yang lancar.
             </p>
         </div>
     </div>
@@ -25,13 +25,13 @@
         <div class="dash-panel-header">
             <div>
                 <h2 class="dash-panel-title">Daftar Karyawan</h2>
-                <p class="dash-panel-subtitle">Menunggu endpoint <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/karyawan</code></p>
+                <p class="dash-panel-subtitle">Data dimuat via <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/admin/karyawan</code></p>
             </div>
             <span class="dash-panel-tag">F07</span>
         </div>
         <div class="dash-panel-body">
             <div class="table-wrap">
-                <table class="data-table">
+                <table class="data-table" id="tabel-karyawan">
                     <thead>
                         <tr>
                             <th>Karyawan</th>
@@ -43,35 +43,20 @@
                             <th>Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @for ($i = 0; $i < 6; $i++)
+                    <tbody id="tbody-karyawan">
                         <tr>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <div class="skeleton-line" style="width:32px;height:32px;border-radius:8px;flex-shrink:0;"></div>
-                                    <div style="display:flex;flex-direction:column;gap:5px;flex:1;">
-                                        <div class="skeleton-line" style="width:120px;height:10px;"></div>
-                                        <div class="skeleton-line skeleton-line--short" style="height:8px;"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><div class="skeleton-line" style="width:80px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:100px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:90px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:80px;height:10px;"></div></td>
-                            <td><div class="skeleton-line" style="width:50px;height:20px;border-radius:999px;"></div></td>
-                            <td>
-                                <div style="display:flex;gap:6px;">
-                                    <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
-                                    <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
-                                    <div class="skeleton-line" style="width:28px;height:28px;border-radius:7px;"></div>
+                            <td colspan="7">
+                                <div class="skeleton-wrap" style="padding:8px 0;">
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line skeleton-line--medium"></div>
+                                    <div class="skeleton-line skeleton-line--short"></div>
                                 </div>
                             </td>
                         </tr>
-                        @endfor
                     </tbody>
                 </table>
             </div>
+            <div id="paginasi-karyawan"></div>
         </div>
     </div>
 
