@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;  
 use App\Http\Controllers\SuperAdmin\PageController as SuperAdminPageController;
+use App\Http\Controllers\AdminOutsource\PageController as AdminOutsourcePageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,13 +56,17 @@ Route::middleware('auth')->group(function () {
     //     });
 
     // ── Admin Outsource (F07–F11) ─────────────────────────────────────────────
-    // Placeholder — PageController Admin Outsource akan dibuat saat implementasi
-    // Route::middleware('role:admin_outsource')
-    //     ->prefix('admin')
-    //     ->name('admin.')
-    //     ->group(function () {
-    //         Route::get('dashboard', [AdminOutsource\PageController::class, 'dashboard'])->name('dashboard');
-    //     });
+    Route::middleware('role:admin_outsource')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('dashboard',        [AdminOutsourcePageController::class, 'dashboard'])      ->name('dashboard');
+        Route::get('karyawan',         [AdminOutsourcePageController::class, 'karyawan'])       ->name('karyawan');
+        Route::get('planning',         [AdminOutsourcePageController::class, 'planning'])       ->name('planning');
+        Route::get('validasi-absensi', [AdminOutsourcePageController::class, 'validasiAbsensi'])->name('validasi-absensi');
+        Route::get('riwayat-absensi',  [AdminOutsourcePageController::class, 'riwayatAbsensi'] )->name('riwayat-absensi');
+        Route::get('kelola-izin',      [AdminOutsourcePageController::class, 'kelolaIzin']     )->name('kelola-izin');
+    });
 
     // ── Karyawan (F01–F06) ────────────────────────────────────────────────────
     // Placeholder — PageController Karyawan akan dibuat saat implementasi
@@ -75,7 +81,7 @@ Route::middleware('auth')->group(function () {
     // Logout tetap di web route karena diproses dari form Blade (non-AJAX).
     // JS juga bisa hit POST /api/auth/logout untuk logout via AJAX.
     Route::post('logout', function () {
-        auth()->logout();
+        auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
         return redirect('/login');

@@ -12,6 +12,7 @@ export default defineConfig({
                 // ── CSS per role ────────────────────────────────────────────
                 'resources/css/login.css',
                 'resources/css/super-admin.css',
+                'resources/css/admin.css',
 
                 // ── JS global ───────────────────────────────────────────────
                 'resources/js/app.js',
@@ -24,6 +25,9 @@ export default defineConfig({
                 'resources/js/super-admin/akun.js',
                 'resources/js/super-admin/master-data.js',
                 'resources/js/super-admin/konfigurasi-area.js',
+
+                // ── JS Admin Outsource ───────────────────────────────────────────────
+                'resources/js/admin/dashboard.js',
             ],
             refresh: true,
         }),
