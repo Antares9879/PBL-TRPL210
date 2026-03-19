@@ -125,3 +125,7 @@
 
 </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/kelola-izin.js'])
+@endpush

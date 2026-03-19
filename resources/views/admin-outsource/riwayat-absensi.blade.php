@@ -84,3 +84,7 @@
 
 </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/validasi-absensi.js'])
+@endpush

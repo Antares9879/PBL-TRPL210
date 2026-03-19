@@ -88,3 +88,7 @@
 
 </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/planning.js'])
+@endpush
