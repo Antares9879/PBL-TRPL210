@@ -319,7 +319,7 @@ async function simpanResetPassword() {
 // ── Dropdown departemen ───────────────────────────────────────────────────────
 async function loadDepartemenDropdown() {
     try {
-        const res  = await apiFetch('/api/super-admin/departemen?status=aktif&page=1');
+        const res = await apiFetch('/api/admin/lookup/departemen?status=aktif');
         const json = await res.json();
         const sel  = document.getElementById('k-departemen');
         const selF = document.getElementById('filter-dept');

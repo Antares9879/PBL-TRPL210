@@ -113,7 +113,7 @@ function buildUI() {
 
             <!-- Kolom kanan: detail / grid -->
             <div class="planning-main">
-                <div class="dash-panel" id="detail-panel">
+                <div class="dash-panel dash-panel--grid" id="detail-panel">
                     <div class="dash-panel-header" id="detail-header">
                         <div>
                             <h2 class="dash-panel-title">Pilih planning untuk melihat detail</h2>
@@ -172,7 +172,7 @@ function buildUI() {
 
 async function loadShiftList() {
     try {
-        const res  = await apiFetch('/api/super-admin/shift?status=aktif');
+        const res = await apiFetch('/api/admin/lookup/shift?status=aktif');
         const json = await res.json();
         if (json.status) {
             state.shiftList = Array.isArray(json.data) ? json.data : (json.data?.data ?? []);
@@ -1003,6 +1003,36 @@ async function konfirmasiUploadUlang(idPlanningLama) {
 // ════════════════════════════════════════════════════════════════════════════
 //  BIND EVENTS
 // ════════════════════════════════════════════════════════════════════════════
+function resetDetailPanel() {
+    const detailHeader = document.getElementById('detail-header');
+    const detailBody   = document.getElementById('detail-body');
+
+    if (detailHeader) {
+        detailHeader.innerHTML = `
+            <div>
+                <h2 class="dash-panel-title">Pilih planning untuk melihat detail</h2>
+                <p class="dash-panel-subtitle">atau upload Excel untuk membuat planning baru</p>
+            </div>`;
+    }
+
+    if (detailBody) {
+        detailBody.innerHTML = `
+            <div id="grid-placeholder" style="text-align:center;padding:60px 20px;color:#94a3b8;">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"
+                    viewBox="0 0 24 24" style="margin:0 auto 16px;display:block;opacity:0.3;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 17V7m0 10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m0 10a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m0 10V7m0 10a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2"/>
+                </svg>
+                <p style="font-size:14px;font-weight:500;color:#64748b;margin:0 0 8px;">
+                    Grid jadwal akan tampil di sini
+                </p>
+                <p style="font-size:12px;color:#94a3b8;margin:0;">
+                    Klik planning di sebelah kiri, atau upload Excel untuk mulai
+                </p>
+            </div>`;
+    }
+}
+
 
 function bindEvents() {
     // Expose fungsi ke window untuk dipanggil dari inline HTML
@@ -1015,11 +1045,15 @@ function bindEvents() {
         if (e.target.id === 'sel-bulan') {
             state.bulan = parseInt(e.target.value);
             state.selectedPlanId = null;
+            state.gridPlanningId = null;
+            resetDetailPanel();
             loadPlanning();
         }
         if (e.target.id === 'sel-tahun') {
             state.tahun = parseInt(e.target.value);
             state.selectedPlanId = null;
+            state.gridPlanningId = null;
+            resetDetailPanel();
             loadPlanning();
         }
         if (e.target.id === 'input-upload-excel') {

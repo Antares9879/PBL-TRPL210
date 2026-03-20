@@ -554,7 +554,16 @@ body.app-body {
 .dash-panel {
     background: var(--surface-card);
     border: 1px solid var(--surface-border);
-    border-radius: 14px; overflow: hidden;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* Panel yang berisi grid jadwal butuh overflow visible agar scroll wrapper berfungsi */
+.dash-panel--grid {
+    overflow: visible;
+    border-radius: 14px;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
 }
 
 .dash-panel--full { width: 100%; }
@@ -974,6 +983,8 @@ body.app-body {
     grid-template-columns: 300px 1fr;
     gap: 16px;
     align-items: start;
+    /* min-width: 0 agar kolom kanan tidak overflow keluar grid */
+    min-width: 0;
 }
 
 @media (max-width: 1024px) {
@@ -981,6 +992,12 @@ body.app-body {
 }
 
 .planning-sidebar { position: sticky; top: 76px; }
+
+/* Kolom kanan (grid jadwal) — wajib min-width: 0 di CSS Grid */
+.planning-main {
+    min-width: 0;
+    overflow: hidden; /* clip border-radius, bukan clip konten scroll */
+}
 
 /* ── Planning list items ─────────────────────────────────────────── */
 .planning-list-item {
@@ -1088,15 +1105,77 @@ body.app-body {
 
 .grid-scroll-wrapper {
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
-    border-radius: 10px;
-    border: 1px solid var(--surface-border);
+    cursor: grab;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    /* scrollbar custom agar lebih rapi */
+    scrollbar-width: thin;
+    scrollbar-color: var(--amber-300) #f1f5f9;
+    /* padding bawah untuk scrollbar tidak ketimpa konten */
+    padding-bottom: 6px;
 }
 
+.grid-scroll-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+.grid-scroll-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 999px;
+}
+.grid-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: var(--amber-300);
+    border-radius: 999px;
+}
+.grid-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--amber-500);
+}
+
+/* dash-panel-body khusus planning — padding lebih kecil agar scroll area maksimal */
+.dash-panel--grid .dash-panel-body {
+    padding: 18px 0 0 0;
+}
+
+.dash-panel--grid .dash-panel-header {
+    padding: 18px 20px 14px;
+}
+
+.dash-panel--grid .grid-legend {
+    padding: 0 20px 14px;
+}
+
+.dash-panel--grid .grid-scroll-wrapper {
+    border-radius: 0 0 14px 14px;
+}
+
+.grid-scroll-wrapper:active {
+    cursor: grabbing;
+}
+
+/* Pastikan tabel tidak collapse */
 .jadwal-grid {
     border-collapse: collapse;
-    min-width: max-content;
-    width: 100%;
+    min-width: max-content; /* paksa tabel selebar 31 kolom tanggal */
+    width: auto;            /* jangan width: 100% — biarkan natural */
+    table-layout: fixed;
+}
+
+/* Kolom nama karyawan sticky saat scroll */
+.grid-th-karyawan,
+.grid-td-karyawan {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: #fff;
+    min-width: 180px;
+    max-width: 220px;
+}
+
+.grid-th-karyawan {
+    z-index: 3; /* lebih tinggi dari td agar tidak tertimpa saat scroll */
+    background: #1a3a1a;
 }
 
 /* Header karyawan (kolom pertama) */

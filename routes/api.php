@@ -49,6 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
         ->prefix('admin')
         ->name('api.admin.')
         ->group(function () {
+
+            // ── Lookup endpoints (read-only, untuk populate dropdown) ─────────────
+            Route::get('lookup/departemen', [DepartemenApiController::class, 'index'])
+                ->name('lookup.departemen');
+            Route::get('lookup/shift', [ShiftApiController::class, 'index'])
+                ->name('lookup.shift');
  
             // F08 — Download template Excel
             Route::get('planning/download-template',
