@@ -27,11 +27,11 @@ export default defineConfig({
                 'resources/js/super-admin/konfigurasi-area.js',
 
                 // ── JS Admin Outsource ───────────────────────────────────────────────
-                'resources/js/admin/dashboard.js',
-                'resources/js/admin/karyawan.js',
-                'resources/js/admin/planning.js',
-                'resources/js/admin/validasi-absensi.js',
-                'resources/js/admin/kelola-izin.js',
+                'resources/js/admin-outsource/dashboard.js',
+                'resources/js/admin-outsource/karyawan.js',
+                'resources/js/admin-outsource/planning.js',
+                'resources/js/admin-outsource/validasi-absensi.js',
+                'resources/js/admin-outsource/kelola-izin.js',
             ],
             refresh: true,
         }),
