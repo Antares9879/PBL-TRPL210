@@ -74,6 +74,8 @@ class Pengguna extends Authenticatable
      * Laravel Auth mengharapkan kolom bernama 'password'.
      * Karena schema kita menggunakan 'password_hash', kita bridge di sini.
      */
+    protected $authPasswordName = 'password_hash';
+    
     public function getAuthPassword(): string
     {
         return $this->password_hash;

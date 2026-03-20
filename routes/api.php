@@ -102,14 +102,6 @@ Route::middleware('auth:sanctum')->group(function () {
                 [KaryawanApiController::class, 'resetPassword']
             )->name('karyawan.reset-password');
     
-            // ── F08–F09 — Planning Kerja ──────────────────────────────────────────
-            Route::apiResource('planning', PlanningKerjaApiController::class)
-                ->only(['index', 'store', 'show']);
-    
-            Route::post('planning/{planning}/upload-ulang',
-                [PlanningKerjaApiController::class, 'uploadUlang']
-            )->name('planning.upload-ulang');
-    
             // ── F10–F11 — Validasi & Pantau Absensi ──────────────────────────────
             // Absensi
             Route::get('validasi-absensi',
