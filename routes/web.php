@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;  
 use App\Http\Controllers\SuperAdmin\PageController as SuperAdminPageController;
 use App\Http\Controllers\AdminOutsource\PageController as AdminOutsourcePageController;
+use App\Http\Controllers\Karyawan\PageController as KaryawanPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,13 +70,17 @@ Route::middleware('auth')->group(function () {
     });
 
     // ── Karyawan (F01–F06) ────────────────────────────────────────────────────
-    // Placeholder — PageController Karyawan akan dibuat saat implementasi
-    // Route::middleware('role:karyawan')
-    //     ->prefix('karyawan')
-    //     ->name('karyawan.')
-    //     ->group(function () {
-    //         Route::get('dashboard', [Karyawan\PageController::class, 'dashboard'])->name('dashboard');
-    //     });
+    Route::middleware('role:karyawan')
+        ->prefix('karyawan')
+        ->name('karyawan.')
+        ->group(function () {
+            Route::get('dashboard', [KaryawanPageController::class, 'dashboard'])->name('dashboard');
+            Route::get('jadwal',    [KaryawanPageController::class, 'jadwalKerja'])->name('jadwal');
+            Route::get('absensi',   [KaryawanPageController::class, 'absensi'])     ->name('absensi');
+            Route::get('lembur',    [KaryawanPageController::class, 'ajukanLembur'])->name('lembur');
+            Route::get('izin',      [KaryawanPageController::class, 'ajukanIzin'])     ->name('izin');
+            Route::get('riwayat',   [KaryawanPageController::class, 'lihatAbsensi'])   ->name('riwayat');
+         });
 
     // ── Logout ────────────────────────────────────────────────────────────────
     // Logout tetap di web route karena diproses dari form Blade (non-AJAX).

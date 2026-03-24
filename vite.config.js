@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/login.css',
                 'resources/css/super-admin.css',
                 'resources/css/admin.css',
+                'resources/css/karyawan.css',
 
                 // ── JS global ───────────────────────────────────────────────
                 'resources/js/app.js',
