@@ -33,6 +33,14 @@ export default defineConfig({
                 'resources/js/admin-outsource/planning.js',
                 'resources/js/admin-outsource/validasi-absensi.js',
                 'resources/js/admin-outsource/kelola-izin.js',
+
+                // ── JS Karyawan ───────────────────────────────────────────────
+                'resources/js/karyawan/dashboard.js',
+                'resources/js/karyawan/absensi.js',
+                'resources/js/karyawan/izin.js',
+                'resources/js/karyawan/lembur.js',
+                'resources/js/karyawan/jadwal.js',
+                'resources/js/karyawan/riwayat.js',
             ],
             refresh: true,
         }),
