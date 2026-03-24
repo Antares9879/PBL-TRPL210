@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model Karyawan
@@ -46,6 +47,8 @@ class Karyawan extends Model
         'tanggal_bergabung' => 'date',
     ];
 
+    // ── Relasi BelongsTo (sudah ada sebelumnya) ───────────────────────────────
+
     public function pengguna(): BelongsTo
     {
         return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
@@ -59,5 +62,52 @@ class Karyawan extends Model
     public function departemen(): BelongsTo
     {
         return $this->belongsTo(Departemen::class, 'id_departemen', 'id_departemen');
+    }
+
+    // ── Relasi HasMany (ditambahkan) ──────────────────────────────────────────
+
+    /**
+     * Seluruh record absensi karyawan ini.
+     * Digunakan di: AbsensiApiController, RiwayatAbsensiApiController, AbsensiService
+     */
+    public function absensi(): HasMany
+    {
+        return $this->hasMany(Absensi::class, 'id_karyawan', 'id_karyawan');
+    }
+
+    /**
+     * Seluruh jadwal kerja harian karyawan ini (dari semua planning).
+     * Digunakan di: JadwalApiController, KaryawanApiController (cek jadwal aktif sebelum nonaktifkan)
+     */
+    public function jadwal(): HasMany
+    {
+        return $this->hasMany(JadwalKerja::class, 'id_karyawan', 'id_karyawan');
+    }
+
+    /**
+     * Seluruh pengajuan izin karyawan ini.
+     * Digunakan di: IzinApiController, ValidasiAbsensiApiController
+     */
+    public function pengajuanIzin(): HasMany
+    {
+        return $this->hasMany(PengajuanIzin::class, 'id_karyawan', 'id_karyawan');
+    }
+
+    /**
+     * Seluruh pengajuan lembur karyawan ini.
+     * Digunakan di: LemburApiController, RiwayatAbsensiApiController
+     */
+    public function pengajuanLembur(): HasMany
+    {
+        return $this->hasMany(PengajuanLembur::class, 'id_karyawan', 'id_karyawan');
+    }
+
+    /**
+     * Seluruh rekap bulanan karyawan ini.
+     * Digunakan di: RiwayatAbsensiApiController (ringkasan), HR (F13–F16)
+     */
+    public function rekapBulanan(): HasMany
+    {
+        return $this->hasMany(RekapBulanan::class, 'id_karyawan', 'id_karyawan');
     }
 }
