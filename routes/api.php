@@ -10,6 +10,11 @@ use App\Http\Controllers\Api\SuperAdmin\KonfigurasiAreaApiController;
 use App\Http\Controllers\Api\AdminOutsource\KaryawanApiController;
 use App\Http\Controllers\Api\AdminOutsource\PlanningKerjaApiController;
 use App\Http\Controllers\Api\AdminOutsource\ValidasiAbsensiApiController;
+use App\Http\Controllers\Api\Karyawan\AbsensiApiController;
+use App\Http\Controllers\Api\Karyawan\JadwalApiController;
+use App\Http\Controllers\Api\Karyawan\LemburApiController;
+use App\Http\Controllers\Api\Karyawan\IzinApiController;
+use App\Http\Controllers\Api\Karyawan\RiwayatAbsensiApiController;
 
 // ── Auth (public) ──────────────────────────────────────────────────────────────
 Route::prefix('auth')->name('api.auth.')->group(function () {
@@ -124,6 +129,40 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:user_departemen')->prefix('departemen')->name('api.departemen.')->group(function () {});
     Route::middleware('role:hr')->prefix('hr')->name('api.hr.')->group(function () {});
-    Route::middleware('role:karyawan')->prefix('karyawan')->name('api.karyawan.')->group(function () {});
+    
+    Route::middleware('role:karyawan')
+        ->prefix('karyawan')
+        ->name('api.karyawan.')
+        ->group(function () {
+ 
+            // F01 — Absensi GPS
+            Route::post('check-in',  [AbsensiApiController::class, 'checkIn'])->name('check-in');
+            Route::post('check-out', [AbsensiApiController::class, 'checkOut'])->name('check-out');
+    
+            // F02 — Jadwal Kerja
+            Route::get('jadwal',      [JadwalApiController::class, 'index'])->name('jadwal.index');
+            Route::get('jadwal/{id}', [JadwalApiController::class, 'show'])->name('jadwal.show');
+    
+            // F03 — Pengajuan Lembur
+            Route::get('lembur',      [LemburApiController::class, 'index'])->name('lembur.index');
+            Route::post('lembur',     [LemburApiController::class, 'store'])->name('lembur.store');
+            Route::get('lembur/{id}', [LemburApiController::class, 'show'])->name('lembur.show');
+    
+            // F04 — Pengajuan Izin
+            Route::get('izin',      [IzinApiController::class, 'index'])->name('izin.index');
+            Route::post('izin',     [IzinApiController::class, 'store'])->name('izin.store');
+            Route::get('izin/{id}', [IzinApiController::class, 'show'])->name('izin.show');
+    
+            // Lookup jenis izin (untuk dropdown form)
+            Route::get('jenis-izin', [IzinApiController::class, 'jenisIzin'])->name('jenis-izin');
+    
+            // F05 — Upload & Download Dokumen Izin
+            Route::post('izin/{id}/dokumen',            [IzinApiController::class, 'uploadDokumen'])->name('izin.dokumen.upload');
+            Route::get('izin/{id}/dokumen/{docId}',     [IzinApiController::class, 'downloadDokumen'])->name('izin.dokumen.download');
+    
+            // F06 — Riwayat Absensi Pribadi
+            Route::get('riwayat',          [RiwayatAbsensiApiController::class, 'index'])->name('riwayat.index');
+            Route::get('riwayat/ringkasan',[RiwayatAbsensiApiController::class, 'ringkasan'])->name('riwayat.ringkasan');
+        });
 
 });
