@@ -16,7 +16,7 @@
 import {
     apiFetch, esc, fmtWaktu, fmtTanggal, fmtMenit,
     toast, openModal, closeModal,
-    badgeKehadiran, badgeValidasi, badgeLokasi,
+    badgeKehadiran, badgeValidasi,
     renderPaginasi, injectModalStyles,
 } from './_utils.js';
 
@@ -84,7 +84,13 @@ function renderValidasi(rows) {
         return;
     }
 
-    tbody.innerHTML = rows.map(row => `
+    tbody.innerHTML = rows.map(row => {
+        const namaKaryawan = row.nama_karyawan ?? row.karyawan?.nama_lengkap ?? '—';
+        const nomorKaryawan = row.nomor_karyawan ?? row.karyawan?.nomor_karyawan ?? '';
+        const namaShift = row.nama_shift ?? row.shift?.nama_shift ?? '—';
+        const lokasiValid = getLokasiValid(row);
+
+        return `
         <tr>
             <td>
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -92,21 +98,21 @@ function renderValidasi(rows) {
                         background:linear-gradient(135deg,#1a6e1a,#0a280a);
                         display:flex;align-items:center;justify-content:center;
                         font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#87dc87;">
-                        ${esc(row.nama_karyawan?.charAt(0)?.toUpperCase() ?? '?')}
+                        ${esc(namaKaryawan?.charAt(0)?.toUpperCase() ?? '?')}
                     </div>
                     <div>
-                        <div style="font-weight:500;color:#0f172a;font-size:13px;">${esc(row.nama_karyawan)}</div>
-                        <div style="font-size:11px;color:#94a3b8;">${esc(row.nomor_karyawan ?? '')}</div>
+                        <div style="font-weight:500;color:#0f172a;font-size:13px;">${esc(namaKaryawan)}</div>
+                        <div style="font-size:11px;color:#94a3b8;">${esc(nomorKaryawan)}</div>
                     </div>
                 </div>
             </td>
             <td style="font-size:12px;color:#475569;">${fmtTanggal(row.tanggal_absensi)}</td>
-            <td style="font-size:12px;color:#475569;">${esc(row.nama_shift ?? '—')}</td>
+            <td style="font-size:12px;color:#475569;">${esc(namaShift)}</td>
             <td style="font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:#0f172a;">
                 ${fmtWaktu(row.waktu_check_in)}</td>
             <td style="font-family:'Syne',sans-serif;font-size:13px;color:#475569;">
                 ${fmtWaktu(row.waktu_check_out)}</td>
-            <td>${badgeLokasi(row.is_lokasi_valid_in && row.is_lokasi_valid_out)}</td>
+            <td>${renderLokasiBadge(lokasiValid)}</td>
             <td>
                 ${(row.menit_telat ?? 0) > 0
                     ? `<span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:#d97706;">
@@ -119,11 +125,11 @@ function renderValidasi(rows) {
                 ${row.status_validasi === 'menunggu'
                     ? `<div style="display:flex;gap:5px;">
                             <button class="btn-approve btn-do-approve"
-                                data-id="${row.id_absensi}" data-nama="${esc(row.nama_karyawan)}">
+                                data-id="${row.id_absensi}" data-nama="${esc(namaKaryawan)}">
                                 ✓ Setujui
                             </button>
                             <button class="btn-reject btn-do-reject"
-                                data-id="${row.id_absensi}" data-nama="${esc(row.nama_karyawan)}">
+                                data-id="${row.id_absensi}" data-nama="${esc(namaKaryawan)}">
                                 ✕ Tolak
                             </button>
                        </div>`
@@ -131,14 +137,18 @@ function renderValidasi(rows) {
                 }
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 async function prosesValidasi(id, aksi, catatan = '') {
     try {
         const res  = await apiFetch(`/api/admin/validasi-absensi/${id}`, {
             method: 'POST',
-            body: JSON.stringify({ aksi, catatan }),
+            body: JSON.stringify({
+                aksi,
+                ...(aksi === 'reject' ? { catatan_penolakan: catatan } : {}),
+            }),
         });
         const json = await res.json();
 
@@ -214,7 +224,7 @@ function injectToolbarValidasi() {
 
         if (approveBtn) {
             selectedAbsensiId = parseInt(approveBtn.dataset.id);
-            await prosesValidasi(selectedAbsensiId, 'disetujui');
+            await prosesValidasi(selectedAbsensiId, 'approve');
         }
 
         if (rejectBtn) {
@@ -259,9 +269,13 @@ function injectModalValidasi() {
     `);
 
     document.getElementById('btn-konfirmasi-reject-absensi')?.addEventListener('click', async () => {
-        const catatan = getVal('reject-absensi-catatan');
+        const catatan = getVal('reject-absensi-catatan').trim();
+        if (!catatan) {
+            toast('Catatan penolakan wajib diisi.', 'warning');
+            return;
+        }
         closeModal('modal-reject-absensi');
-        await prosesValidasi(selectedAbsensiId, 'ditolak', catatan);
+        await prosesValidasi(selectedAbsensiId, 'reject', catatan);
     });
 
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
@@ -415,3 +429,23 @@ function showEmpty(cols, tbodyId, msg) {
 
 function getVal(id) { return document.getElementById(id)?.value ?? ''; }
 function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val ?? ''; }
+
+function getLokasiValid(row) {
+    const inValid = row.is_lokasi_valid_in;
+    const outValid = row.is_lokasi_valid_out;
+
+    if (outValid === null || outValid === undefined) {
+        if (inValid === null || inValid === undefined) return null;
+        return Boolean(inValid);
+    }
+    return Boolean(inValid) && Boolean(outValid);
+}
+
+function renderLokasiBadge(valid) {
+    if (valid === null || valid === undefined) {
+        return `<span class="badge badge--neutral">-</span>`;
+    }
+    return valid
+        ? `<span class="badge badge--success">Valid</span>`
+        : `<span class="badge badge--danger">Tidak Valid</span>`;
+}

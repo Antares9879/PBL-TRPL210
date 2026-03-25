@@ -33,6 +33,21 @@ class ValidasiAbsensiRequest extends FormRequest
         ];
     }
 
+    protected function prepareForValidation(): void
+    {
+        $aksi = $this->input('aksi');
+        if ($aksi === 'disetujui') {
+            $aksi = 'approve';
+        } elseif ($aksi === 'ditolak') {
+            $aksi = 'reject';
+        }
+
+        $this->merge([
+            'aksi' => $aksi,
+            'catatan_penolakan' => $this->input('catatan_penolakan', $this->input('catatan')),
+        ]);
+    }
+
     public function messages(): array
     {
         return [
