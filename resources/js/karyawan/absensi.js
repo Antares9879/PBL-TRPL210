@@ -497,6 +497,12 @@ function closeMapModal() {
 function initLeafletMap() {
     const container = document.getElementById('leaflet-map-container');
     if (!container) return;
+    if (typeof window.L === 'undefined') {
+        const infoEl = document.getElementById('map-gps-info');
+        if (infoEl) infoEl.textContent = 'Library peta gagal dimuat. Coba refresh halaman.';
+        toast('Peta gagal dimuat. Silakan refresh halaman lalu coba lagi.', 'error');
+        return;
+    }
 
     // Tentukan center: prioritas area config → GPS → default Batam
     const centerLat = areaConfig?.latitude_pusat ?? gpsState.lat ?? 1.0456;
@@ -730,10 +736,11 @@ function closeConfirmModal() {
 
 /** Eksekusi aksi yang sudah dikonfirmasi */
 async function executePendingAbsensi() {
+    const action = pendingAction;
     closeConfirmModal();
-    if (pendingAction === 'checkin') {
+    if (action === 'checkin') {
         await doCheckin();
-    } else if (pendingAction === 'checkout') {
+    } else if (action === 'checkout') {
         await doCheckout();
     }
 }
