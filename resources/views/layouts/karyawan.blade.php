@@ -44,7 +44,7 @@
     {{-- Brand --}}
     <div class="k-sidebar-brand">
         <div class="k-sidebar-logo">
-            <img src="/images/logo/logo-ecogreen.png"
+            <img src="/images/logo/logo-ecogreen.webp"
                  alt="Logo PT Ecogreen Oleochemicals"
                  onerror="this.style.display='none'">
         </div>
@@ -117,7 +117,7 @@
             {{-- Brand (mobile only) --}}
             <div class="k-topbar-brand">
                 <div class="k-topbar-logo">
-                    <img src="/images/logo/logo-ecogreen.png"
+                    <img src="/images/logo/logo-ecogreen.webp"
                          alt="Logo"
                          onerror="this.style.display='none'">
                 </div>

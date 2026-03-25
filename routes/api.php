@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Karyawan\JadwalApiController;
 use App\Http\Controllers\Api\Karyawan\LemburApiController;
 use App\Http\Controllers\Api\Karyawan\IzinApiController;
 use App\Http\Controllers\Api\Karyawan\RiwayatAbsensiApiController;
+use App\Http\Controllers\Api\Karyawan\AreaApiController;
 
 // ── Auth (public) ──────────────────────────────────────────────────────────────
 Route::prefix('auth')->name('api.auth.')->group(function () {
@@ -134,6 +135,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->prefix('karyawan')
         ->name('api.karyawan.')
         ->group(function () {
+
+            // ── Area GPS aktif (untuk peta Leaflet di halaman absensi) ────────
+            Route::get('area-aktif', [AreaApiController::class, 'index'])->name('area-aktif');
  
             // F01 — Absensi GPS
             Route::post('check-in',  [AbsensiApiController::class, 'checkIn'])->name('check-in');

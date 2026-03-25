@@ -4,6 +4,130 @@
 @section('breadcrumb-parent', 'Karyawan')
 @section('breadcrumb-current', 'Absensi GPS')
 
+{{-- Load Leaflet CSS --}}
+@push('styles')
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="anonymous">
+    <style>
+        /* ── Pulse animasi marker karyawan di peta ── */
+        @keyframes pulse-blue {
+            0%   { box-shadow: 0 0 0 2px #3b82f6, 0 0  4px rgba(37,99,235,0.4); }
+            50%  { box-shadow: 0 0 0 5px #3b82f6, 0 0 14px rgba(37,99,235,0.25); }
+            100% { box-shadow: 0 0 0 2px #3b82f6, 0 0  4px rgba(37,99,235,0.4); }
+        }
+
+        /* ── Modal peta ── */
+        #map-modal-overlay {
+            position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,0.55);
+            display: flex; align-items: flex-end;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        #map-modal-overlay.k-modal--open {
+            opacity: 1; pointer-events: auto;
+        }
+        #map-modal-box {
+            width: 100%; max-width: 640px; margin: 0 auto;
+            background: var(--surface-card, #fff);
+            border-radius: 20px 20px 0 0;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            max-height: 92vh;
+            display: flex; flex-direction: column;
+        }
+        #map-modal-overlay.k-modal--open #map-modal-box {
+            transform: translateY(0);
+        }
+        #leaflet-map-container {
+            width: 100%; height: 320px; flex-shrink: 0;
+            background: #e8f4e8;
+        }
+        .k-map-info-bar {
+            padding: 10px 16px;
+            font-size: 12px;
+            color: var(--text-secondary, #475569);
+            background: var(--surface-bg, #f8fafc);
+            border-top: 1px solid var(--surface-border, #e2e8f0);
+            min-height: 36px;
+            display: flex; align-items: center;
+        }
+        .k-map-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid var(--surface-border, #e2e8f0);
+            flex-shrink: 0;
+        }
+        .k-map-title {
+            font-size: 15px; font-weight: 700;
+            color: var(--text-primary, #0f172a);
+        }
+
+        /* ── Modal konfirmasi ── */
+        #confirm-modal-overlay {
+            position: fixed; inset: 0; z-index: 9100;
+            background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        #confirm-modal-overlay.k-modal--open {
+            opacity: 1; pointer-events: auto;
+        }
+        #confirm-modal-box {
+            width: 100%; max-width: 400px;
+            background: var(--surface-card, #fff);
+            border-radius: 16px;
+            overflow: hidden;
+            transform: scale(0.92);
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        #confirm-modal-overlay.k-modal--open #confirm-modal-box {
+            transform: scale(1);
+        }
+        .k-confirm-header {
+            padding: 20px 20px 0;
+        }
+        .k-confirm-title {
+            font-size: 17px; font-weight: 700;
+            color: var(--text-primary, #0f172a);
+        }
+        .k-confirm-subtitle {
+            font-size: 12px; color: var(--text-muted, #94a3b8);
+            margin-top: 2px;
+        }
+        .k-confirm-body { padding: 16px 20px; }
+        .k-confirm-info-list {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-bottom: 12px;
+        }
+        .k-confirm-info-row {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: var(--text-secondary, #475569);
+            background: var(--surface-bg, #f8fafc);
+            padding: 8px 12px; border-radius: 8px;
+        }
+        .k-confirm-info-row svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .k-confirm-info-row--success { color: #15803d; background: #f0fdf4; }
+        .k-confirm-info-row--danger  { color: #dc2626; background: #fef2f2; }
+        .k-confirm-info-row--warning { color: #92400e; background: #fffbeb; }
+        .k-confirm-note {
+            font-size: 11px; color: var(--text-muted, #94a3b8);
+            line-height: 1.5;
+        }
+        .k-confirm-footer {
+            display: flex; gap: 10px;
+            padding: 0 20px 20px;
+        }
+        .k-btn--checkout { background: #ea580c; }
+        .k-btn--checkout:hover { background: #c2410c; }
+    </style>
+@endpush
+
 @section('content')
 <div class="k-wrap">
 
@@ -15,19 +139,28 @@
                 Tap tombol di bawah untuk mencatat kehadiran Anda.
             </p>
         </div>
-        <span class="k-card-tag">F01</span>
+        {{-- Tombol Lihat Peta — selalu tersedia --}}
+        <button class="k-btn k-btn--outline k-btn--sm"
+                id="btn-lihat-peta"
+                style="gap:5px;"
+                aria-label="Lihat peta radius area absensi">
+            <svg width="14" height="14" fill="none" stroke="currentColor"
+                 stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 13l4.553 2.276A1 1 0 0 0 21 21.382V10.618a1 1 0 0 0-.553-.894L15 7m0 13V7m0 0L9 4"/>
+            </svg>
+            Lihat Peta
+        </button>
     </div>
 
     {{-- ══ GPS STATUS PANEL ═════════════════════════════════════════════════ --}}
     <div class="k-gps-panel k-anim-up k-anim-up-d1" id="gps-panel">
         <div class="k-gps-status">
-            {{-- Dot status: pending/ok/error -- diupdate JS --}}
             <span class="k-gps-dot k-gps-dot--pending" id="gps-dot"></span>
             <div class="k-gps-info">
                 <p class="k-gps-label" id="gps-status-text">Mengakses lokasi GPS…</p>
                 <p class="k-gps-coords" id="gps-coords">—</p>
             </div>
-            {{-- Tombol refresh GPS --}}
             <button class="k-icon-btn k-icon-btn--view" id="btn-refresh-gps"
                     title="Perbarui lokasi GPS"
                     aria-label="Perbarui lokasi GPS">
@@ -38,7 +171,7 @@
             </button>
         </div>
 
-        {{-- Jarak ke area PT Ecogreen --}}
+        {{-- Progress bar jarak ke area --}}
         <div class="k-gps-distance" id="gps-distance-row" style="display:none;">
             <span style="font-size:12px;color:var(--text-muted);white-space:nowrap;flex-shrink:0;">
                 Jarak ke area
@@ -51,25 +184,15 @@
     </div>
 
     {{-- ══ STATUS ABSENSI HARI INI ══════════════════════════════════════════ --}}
-    {{--
-        Diisi JS setelah GET /api/karyawan/riwayat?bulan=X&tahun=Y
-        Kondisi:
-        1. Belum check-in: tampilkan chip kosong (default Blade)
-        2. Sudah check-in, belum check-out: tampilkan waktu check-in + badge telat jika ada
-        3. Sudah check-out: tampilkan keduanya + menit kerja
-    --}}
     <div class="k-anim-up k-anim-up-d2" id="absensi-today-panel">
 
-        {{-- Skeleton sementara data dimuat --}}
         <div id="absensi-today-skeleton" style="display:flex;gap:var(--space-2);">
             <div class="k-skel k-skel--block" style="height:72px;flex:1;border-radius:var(--radius-lg);"></div>
             <div class="k-skel k-skel--block" style="height:72px;flex:1;border-radius:var(--radius-lg);"></div>
         </div>
 
-        {{-- Konten aktual — disembunyikan awalnya, diisi JS --}}
         <div id="absensi-today-content" style="display:none;flex-direction:column;gap:var(--space-2);">
 
-            {{-- Status check-in --}}
             <div class="k-absensi-status-card" id="checkin-card" style="display:none;">
                 <div class="k-absensi-status-icon">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -82,7 +205,6 @@
                     <p class="k-absensi-status-meta" id="checkin-time">—</p>
                     <p class="k-absensi-status-sub" id="checkin-jadwal">Jadwal: —</p>
                 </div>
-                {{-- Badge telat — ditampilkan JS jika menit_telat > 0 --}}
                 <span class="k-telat-badge" id="telat-badge" style="display:none;">
                     <svg width="10" height="10" fill="none" stroke="currentColor"
                          stroke-width="2" viewBox="0 0 24 24">
@@ -93,7 +215,6 @@
                 </span>
             </div>
 
-            {{-- Status check-out --}}
             <div class="k-absensi-status-card k-absensi-status-card--checkout"
                  id="checkout-card" style="display:none;">
                 <div class="k-absensi-status-icon">
@@ -109,20 +230,18 @@
                 </div>
             </div>
 
-        </div>{{-- /absensi-today-content --}}
+        </div>
 
-    </div>{{-- /absensi-today-panel --}}
+    </div>
 
     {{-- ══ TOMBOL CHECK-IN / CHECK-OUT ════════════════════════════════════ --}}
     <div class="k-absensi-center k-anim-up k-anim-up-d3">
 
-        {{-- Ring animasi GPS aktif --}}
         <div class="k-absensi-btn-wrap" id="absensi-btn-container">
-            <div class="k-absensi-ring" id="absensi-ring-1" style="display:none;"></div>
-            <div class="k-absensi-ring" id="absensi-ring-2" style="display:none;"></div>
-            <div class="k-absensi-ring" id="absensi-ring-3" style="display:none;"></div>
+            <div class="k-absensi-ring" id="ring-1" style="display:none;"></div>
+            <div class="k-absensi-ring" id="ring-2" style="display:none;"></div>
+            <div class="k-absensi-ring" id="ring-3" style="display:none;"></div>
 
-            {{-- Tombol check-in (default) --}}
             <button class="k-absensi-btn k-absensi-btn--checkin k-absensi-btn--disabled"
                     id="btn-checkin"
                     aria-label="Check-In"
@@ -132,12 +251,10 @@
                           d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h7a3 3 0 0 1 3 3v1"/>
                 </svg>
                 <span class="k-absensi-btn-label">CHECK-IN</span>
-                <span class="k-absensi-btn-sub">Menunggu GPS…</span>
+                <span class="k-absensi-btn-sub" id="btn-sub-text">Menunggu GPS…</span>
             </button>
+        </div>
 
-        </div>{{-- /absensi-btn-container --}}
-
-        {{-- Info di bawah tombol --}}
         <div style="text-align:center;max-width:280px;">
             <p style="font-size:13px;color:var(--text-muted);line-height:1.6;"
                id="absensi-info-text">
@@ -145,13 +262,9 @@
             </p>
         </div>
 
-    </div>{{-- /k-absensi-center --}}
+    </div>
 
-    {{-- ══ NOTIFIKASI PENDING LEMBUR (muncul setelah check-out) ══════════ --}}
-    {{--
-        Diisi JS jika response check-out: pending_lembur = true
-        Endpoint: POST /api/karyawan/check-out → data.pending_lembur
-    --}}
+    {{-- ══ NOTIFIKASI PENDING LEMBUR ══════════════════════════════════════ --}}
     <div id="pending-lembur-banner" style="display:none;" class="k-anim-up">
         <div class="k-alert k-alert--warning">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -159,9 +272,7 @@
                       d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
             </svg>
             <div>
-                <p style="font-weight:600;margin-bottom:2px;">
-                    Kelebihan Waktu Kerja Terdeteksi!
-                </p>
+                <p style="font-weight:600;margin-bottom:2px;">Kelebihan Waktu Kerja Terdeteksi!</p>
                 <p id="pending-lembur-text">
                     Anda memiliki kelebihan waktu kerja. Ajukan form lembur paling lambat H+1.
                 </p>
@@ -178,7 +289,7 @@
         </div>
     </div>
 
-    {{-- ══ RIWAYAT ABSENSI TERAKHIR (5 baris) ════════════════════════════ --}}
+    {{-- ══ RIWAYAT ABSENSI TERAKHIR ════════════════════════════════════════ --}}
     <div class="k-card k-anim-up k-anim-up-d4">
         <div class="k-card-header">
             <div>
@@ -211,7 +322,6 @@
                         </tr>
                     </thead>
                     <tbody id="tbody-riwayat-absensi-mini">
-                        {{-- Skeleton rows --}}
                         @for ($i = 0; $i < 3; $i++)
                             <tr>
                                 <td><div class="k-skel k-skel--text" style="width:80px;"></div></td>
@@ -228,8 +338,88 @@
     </div>
 
 </div>{{-- /k-wrap --}}
+
+
+{{-- ══════════════════════════════════════════════════════════════════════════
+     MODAL: PREVIEW PETA LEAFLET
+     Menampilkan lingkaran radius area absensi + marker posisi karyawan real-time.
+══════════════════════════════════════════════════════════════════════════ --}}
+<div id="map-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+    <div id="map-modal-box">
+
+        <div class="k-map-header">
+            <div>
+                <h3 class="k-map-title" id="map-modal-title">Peta Radius Absensi</h3>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:1px;">
+                    Area hijau = radius absensi · Titik biru = posisi Anda
+                </p>
+            </div>
+            <button class="k-icon-btn" id="btn-close-map-modal" aria-label="Tutup peta">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        {{-- Container peta Leaflet --}}
+        <div id="leaflet-map-container" aria-label="Peta lokasi absensi"></div>
+
+        {{-- Info bar jarak --}}
+        <div class="k-map-info-bar" id="map-gps-info">
+            Memuat data lokasi…
+        </div>
+
+    </div>
+</div>
+
+
+{{-- ══════════════════════════════════════════════════════════════════════════
+     MODAL: KONFIRMASI CHECK-IN / CHECK-OUT
+     Menampilkan ringkasan lokasi sebelum mengirim request ke server.
+══════════════════════════════════════════════════════════════════════════ --}}
+<div id="confirm-modal-overlay" role="dialog" aria-modal="true"
+     aria-labelledby="confirm-modal-title">
+    <div id="confirm-modal-box">
+
+        <div class="k-confirm-header">
+            <h3 class="k-confirm-title" id="confirm-modal-title">Konfirmasi Absensi</h3>
+            <p class="k-confirm-subtitle" id="confirm-modal-subtitle">—</p>
+        </div>
+
+        <div class="k-confirm-body">
+            <div id="confirm-modal-body">
+                {{-- Diisi JS --}}
+            </div>
+        </div>
+
+        <div class="k-confirm-footer">
+            <button type="button" class="k-btn k-btn--ghost k-btn--block"
+                    id="btn-cancel-confirm">
+                Batal
+            </button>
+            <button type="button" class="k-btn k-btn--primary k-btn--block"
+                    id="btn-proceed-absensi">
+                Lanjutkan
+            </button>
+        </div>
+
+        <button class="k-modal-close" id="btn-close-confirm-modal"
+                style="position:absolute;top:14px;right:14px;"
+                aria-label="Tutup">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
+    {{-- Leaflet JS harus di-load sebelum absensi.js --}}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/sp48="
+            crossorigin="anonymous"></script>
     @vite(['resources/js/karyawan/absensi.js'])
 @endpush
