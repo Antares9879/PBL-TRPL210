@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\Karyawan\LemburApiController;
 use App\Http\Controllers\Api\Karyawan\IzinApiController;
 use App\Http\Controllers\Api\Karyawan\RiwayatAbsensiApiController;
 use App\Http\Controllers\Api\Karyawan\AreaApiController;
+use App\Http\Controllers\Api\UserDepartemen\DashboardApiController;
+use App\Http\Controllers\Api\UserDepartemen\ValidasiLemburApiController;
+
 
 // ── Auth (public) ──────────────────────────────────────────────────────────────
 Route::prefix('auth')->name('api.auth.')->group(function () {
@@ -50,7 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('konfigurasi-area', KonfigurasiAreaApiController::class);
         });
 
-    // Placeholder role lain
+    // Placeholder role admin outsource
     Route::middleware('role:admin_outsource')
         ->prefix('admin')
         ->name('api.admin.')
@@ -128,7 +131,52 @@ Route::middleware('auth:sanctum')->group(function () {
             )->name('validasi-izin.validasi');
         });
 
-    Route::middleware('role:user_departemen')->prefix('departemen')->name('api.departemen.')->group(function () {});
+    // ── F12 + Dashboard — User Departemen ─────────────────────────────────
+    Route::middleware('role:user_departemen')
+        ->prefix('departemen')
+        ->name('api.departemen.')
+        ->group(function () {
+ 
+            // ── Dashboard & Monitoring Absensi (read-only) ────────────────
+ 
+            /** Ringkasan stat cards dashboard */
+            Route::get('dashboard/ringkasan',
+                [DashboardApiController::class, 'ringkasan']
+            )->name('dashboard.ringkasan');
+ 
+            /** Daftar absensi karyawan departemen — paginasi */
+            Route::get('dashboard/absensi',
+                [DashboardApiController::class, 'absensi']
+            )->name('dashboard.absensi');
+ 
+            /** Detail satu record absensi */
+            Route::get('dashboard/absensi/{id}',
+                [DashboardApiController::class, 'detailAbsensi']
+            )->name('dashboard.absensi.show');
+ 
+            /** Daftar karyawan aktif di departemen (untuk filter dropdown) */
+            Route::get('dashboard/karyawan',
+                [DashboardApiController::class, 'daftarKaryawan']
+            )->name('dashboard.karyawan');
+ 
+            // ── F12 — Validasi Pengajuan Lembur ──────────────────────────
+ 
+            /** Daftar pengajuan lembur di departemen */
+            Route::get('validasi-lembur',
+                [ValidasiLemburApiController::class, 'index']
+            )->name('validasi-lembur.index');
+ 
+            /** Detail satu pengajuan lembur */
+            Route::get('validasi-lembur/{id}',
+                [ValidasiLemburApiController::class, 'show']
+            )->name('validasi-lembur.show');
+ 
+            /** Proses approve atau reject */
+            Route::post('validasi-lembur/{id}/proses',
+                [ValidasiLemburApiController::class, 'proses']
+            )->name('validasi-lembur.proses');
+        });
+
     Route::middleware('role:hr')->prefix('hr')->name('api.hr.')->group(function () {});
     
     Route::middleware('role:karyawan')

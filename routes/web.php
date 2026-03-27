@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SuperAdmin\PageController as SuperAdminPageController;
 use App\Http\Controllers\AdminOutsource\PageController as AdminOutsourcePageController;
 use App\Http\Controllers\Karyawan\PageController as KaryawanPageController;
-
+use App\Http\Controllers\UserDepartemen\PageController as UserDepartemenPageController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes — E-Outsourcing PBL-TRPL210
@@ -47,27 +47,40 @@ Route::middleware('auth')->group(function () {
     //         Route::get('dashboard', [HR\PageController::class, 'dashboard'])->name('dashboard');
     //     });
 
-    // ── User Departemen (F12) ─────────────────────────────────────────────────
-    // Placeholder — PageController User Departemen akan dibuat saat implementasi
-    // Route::middleware('role:user_departemen')
-    //     ->prefix('departemen')
-    //     ->name('departemen.')
-    //     ->group(function () {
-    //         Route::get('dashboard', [UserDepartemen\PageController::class, 'dashboard'])->name('dashboard');
-    //     });
+    // ── User Departemen (F12 + Dashboard Monitoring) ──────────────────────────
+    Route::middleware('role:user_departemen')
+        ->prefix('departemen')
+        ->name('departemen.')
+        ->group(function () {
+            Route::get('dashboard',
+                [UserDepartemenPageController::class, 'dashboard']
+            )->name('dashboard');
+ 
+            Route::get('validasi-lembur',
+                [UserDepartemenPageController::class, 'validasiLembur']
+            )->name('validasi-lembur');
+ 
+            Route::get('monitoring-absensi',
+                [UserDepartemenPageController::class, 'monitoringAbsensi']
+            )->name('monitoring-absensi');
+ 
+            Route::get('notifikasi',
+                [UserDepartemenPageController::class, 'notifikasi']
+            )->name('notifikasi');
+        });
 
     // ── Admin Outsource (F07–F11) ─────────────────────────────────────────────
     Route::middleware('role:admin_outsource')
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('dashboard',        [AdminOutsourcePageController::class, 'dashboard'])      ->name('dashboard');
-        Route::get('karyawan',         [AdminOutsourcePageController::class, 'karyawan'])       ->name('karyawan');
-        Route::get('planning',         [AdminOutsourcePageController::class, 'planning'])       ->name('planning');
-        Route::get('validasi-absensi', [AdminOutsourcePageController::class, 'validasiAbsensi'])->name('validasi-absensi');
-        Route::get('riwayat-absensi',  [AdminOutsourcePageController::class, 'riwayatAbsensi'] )->name('riwayat-absensi');
-        Route::get('kelola-izin',      [AdminOutsourcePageController::class, 'kelolaIzin']     )->name('kelola-izin');
-    });
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('dashboard',        [AdminOutsourcePageController::class, 'dashboard'])      ->name('dashboard');
+            Route::get('karyawan',         [AdminOutsourcePageController::class, 'karyawan'])       ->name('karyawan');
+            Route::get('planning',         [AdminOutsourcePageController::class, 'planning'])       ->name('planning');
+            Route::get('validasi-absensi', [AdminOutsourcePageController::class, 'validasiAbsensi'])->name('validasi-absensi');
+            Route::get('riwayat-absensi',  [AdminOutsourcePageController::class, 'riwayatAbsensi'] )->name('riwayat-absensi');
+            Route::get('kelola-izin',      [AdminOutsourcePageController::class, 'kelolaIzin']     )->name('kelola-izin');
+        });
 
     // ── Karyawan (F01–F06) ────────────────────────────────────────────────────
     Route::middleware('role:karyawan')
