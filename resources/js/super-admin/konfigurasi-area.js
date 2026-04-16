@@ -11,6 +11,22 @@
  *  - Guard: area aktif tidak bisa dihapus
  */
 
+/**
+ * Catatan:
+ *
+ * Fix:
+ *  - Hapus duplikasi event listener submit form-area yang sebelumnya
+ *    terdaftar dua kali:
+ *      1. di bindEvents() via: document.getElementById('form-area')?.addEventListener(...)
+ *      2. di injectModalHtml() via: document.getElementById('form-area')?.addEventListener(...)
+ *    Solusi: listener submit HANYA ada di bindEvents(). injectModalHtml()
+ *    hanya inject HTML dan bind listener slider radius (bukan submit).
+ *
+ *  - Pola yang sama diperbaiki untuk tombol [data-close-modal]:
+ *    bindEvents() sudah handle lewat querySelector, tidak perlu diulang
+ *    di injectModalHtml().
+ */
+
 import {
     apiFetch, toast, confirmDelete,
     openModal, closeModal,
@@ -18,12 +34,11 @@ import {
     renderPaginasi,
 } from './_utils.js';
 
-let map         = null;   // Leaflet map instance
-let marker      = null;   // Marker koordinat
-let circle      = null;   // Circle radius
+let map         = null;
+let marker      = null;
+let circle      = null;
 let editingId   = null;
 
-// Koordinat default: PT Ecogreen Oleochemicals Batam
 const DEFAULT_LAT = 1.1209;
 const DEFAULT_LNG = 104.0429;
 
@@ -31,9 +46,9 @@ const DEFAULT_LNG = 104.0429;
 document.addEventListener('DOMContentLoaded', () => {
     injectLeafletCss();
     injectStyles();
-    injectModalHtml();
+    injectModalHtml();   // inject HTML dulu
     updateThead();
-    bindEvents();
+    bindEvents();        // bind semua listener, termasuk submit — SEKALI
     loadArea();
 });
 
@@ -112,7 +127,7 @@ function showSkeleton() {
         </td></tr>`;
 }
 
-// ── Event binding ─────────────────────────────────────────────────────────────
+// ── Event binding — SATU TEMPAT, tidak ada duplikasi ─────────────────────────
 function bindEvents() {
     document.getElementById('btn-tambah-area')?.addEventListener('click', () => bukaModal(null));
 
@@ -133,15 +148,18 @@ function bindEvents() {
         }
     });
 
+    // ── Submit form — didaftarkan SEKALI di sini ──────────────────────────────
     document.getElementById('form-area')?.addEventListener('submit', async (e) => {
-        e.preventDefault(); await simpanArea();
+        e.preventDefault();
+        await simpanArea();
     });
 
+    // Tombol tutup modal
     document.querySelector('[data-close-modal="modal-area"]')?.addEventListener('click', () => {
         closeModal('modal-area');
     });
 
-    // Update circle saat radius berubah
+    // Update circle saat radius berubah (range slider)
     document.getElementById('a-radius')?.addEventListener('input', updateMapCircle);
 }
 
@@ -160,20 +178,22 @@ async function bukaModal(id) {
             const json = await res.json();
             if (!json.status) { toast(json.message, 'error'); return; }
             const a = json.data;
-            setValue('a-nama',    a.nama_area);
-            setValue('a-lat',     parseFloat(a.latitude_pusat).toFixed(8));
-            setValue('a-lng',     parseFloat(a.longitude_pusat).toFixed(8));
-            setValue('a-radius',  a.radius_meter);
-            setValue('a-aktif',   a.is_aktif ? '1' : '0');
+            setValue('a-nama',       a.nama_area);
+            setValue('a-lat',        parseFloat(a.latitude_pusat).toFixed(8));
+            setValue('a-lng',        parseFloat(a.longitude_pusat).toFixed(8));
+            setValue('a-radius',     a.radius_meter);
+            setValue('a-radius-input', a.radius_meter);
+            setValue('a-aktif',      a.is_aktif ? '1' : '0');
             lat    = parseFloat(a.latitude_pusat);
             lng    = parseFloat(a.longitude_pusat);
             radius = a.radius_meter;
+            // Sync display label
+            const display = document.getElementById('a-radius-display');
+            if (display) display.textContent = `${a.radius_meter} m`;
         } catch { toast('Gagal memuat data.', 'error'); return; }
     }
 
     openModal('modal-area');
-
-    // Inisialisasi peta setelah modal terbuka
     setTimeout(() => initMap(lat, lng, radius), 150);
 }
 
@@ -183,7 +203,6 @@ async function simpanArea() {
 
     const isAktif = getValue('a-aktif') === '1';
 
-    // Warning jika akan mengaktifkan (replace area aktif lain)
     if (isAktif && !editingId) {
         toast('Area lain yang aktif akan otomatis dinonaktifkan.', 'warning', 2500);
     }
@@ -192,7 +211,7 @@ async function simpanArea() {
         nama_area:       getValue('a-nama'),
         latitude_pusat:  parseFloat(getValue('a-lat')),
         longitude_pusat: parseFloat(getValue('a-lng')),
-        radius_meter:    parseInt(getValue('a-radius')),
+        radius_meter:    parseInt(getValue('a-radius-input') || getValue('a-radius')),
         is_aktif:        isAktif,
     };
 
@@ -228,10 +247,8 @@ function initMap(lat, lng, radius) {
     const container = document.getElementById('area-map');
     if (!container) return;
 
-    // Destroy instance lama jika ada
     if (map) { map.remove(); map = null; marker = null; circle = null; }
 
-    // Tunggu Leaflet tersedia
     if (!window.L) {
         setTimeout(() => initMap(lat, lng, radius), 200);
         return;
@@ -239,17 +256,14 @@ function initMap(lat, lng, radius) {
 
     map = L.map('area-map').setView([lat, lng], 16);
 
-    // OpenStreetMap tile layer (gratis, tidak butuh API key)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
     }).addTo(map);
 
-    // Marker koordinat pusat
     marker = L.marker([lat, lng], { draggable: true }).addTo(map);
     marker.bindPopup('Pusat Area').openPopup();
 
-    // Circle radius
     circle = L.circle([lat, lng], {
         radius:      radius,
         color:       '#1f8a1f',
@@ -258,7 +272,6 @@ function initMap(lat, lng, radius) {
         weight:      2,
     }).addTo(map);
 
-    // Update input koordinat saat marker di-drag
     marker.on('dragend', (e) => {
         const pos = e.target.getLatLng();
         setValue('a-lat', pos.lat.toFixed(8));
@@ -266,7 +279,6 @@ function initMap(lat, lng, radius) {
         circle.setLatLng(pos);
     });
 
-    // Klik peta untuk pindah marker
     map.on('click', (e) => {
         const { lat, lng } = e.latlng;
         marker.setLatLng([lat, lng]);
@@ -280,28 +292,24 @@ function updateMapCircle() {
     if (!circle || !marker) return;
     const radius = parseInt(getValue('a-radius')) || 100;
     circle.setRadius(radius);
-    setValue('a-lat', marker.getLatLng().lat.toFixed(8));
-    setValue('a-lng', marker.getLatLng().lng.toFixed(8));
 }
 
-// ── Inject Leaflet CSS dari CDN ───────────────────────────────────────────────
+// ── Inject Leaflet CSS/JS dari CDN ────────────────────────────────────────────
 function injectLeafletCss() {
     if (document.getElementById('leaflet-css')) return;
 
-    // CSS
     const link = document.createElement('link');
     link.id   = 'leaflet-css';
     link.rel  = 'stylesheet';
     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
     document.head.appendChild(link);
 
-    // JS
     const script = document.createElement('script');
     script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
     document.head.appendChild(script);
 }
 
-// ── Inject Modal HTML ─────────────────────────────────────────────────────────
+// ── Inject Modal HTML — HANYA inject HTML, TANPA listener submit/close ────────
 function injectModalHtml() {
     if (document.getElementById('modal-area')) return;
 
@@ -317,6 +325,7 @@ function injectModalHtml() {
             </div>
         `);
 
+    // Modal HTML — TANPA addEventListener di sini (sudah di bindEvents)
     document.body.insertAdjacentHTML('beforeend', `
         <div id="modal-area" class="modal-overlay" style="display:none;">
             <div class="modal-box" style="max-width:640px;">
@@ -332,7 +341,6 @@ function injectModalHtml() {
                         <span id="err-nama_area" class="form-error"></span>
                     </div>
 
-                    {{-- Peta Leaflet --}}
                     <div class="form-group">
                         <label class="form-label">Pilih Lokasi di Peta</label>
                         <p style="font-size:12px;color:#94a3b8;margin:0 0 8px;">
@@ -388,7 +396,7 @@ function injectModalHtml() {
         </div>
     `);
 
-    // Sinkronkan range slider dan input angka
+    // Sinkronkan range slider dan input angka — ini bukan submit, aman di sini
     document.getElementById('a-radius')?.addEventListener('input', (e) => {
         const val = e.target.value;
         document.getElementById('a-radius-display').textContent = `${val} m`;
@@ -403,8 +411,8 @@ function injectModalHtml() {
         updateMapCircle();
     });
 
-    document.querySelector('[data-close-modal="modal-area"]')?.addEventListener('click', () => closeModal('modal-area'));
-    document.getElementById('form-area')?.addEventListener('submit', async (e) => { e.preventDefault(); await simpanArea(); });
+    // TIDAK ada addEventListener submit atau close di sini
+    // Semua sudah didaftarkan di bindEvents()
 }
 
 function updateThead() {

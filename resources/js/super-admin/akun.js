@@ -12,6 +12,18 @@
  *  - Badge role & status berwarna
  */
 
+/**
+* Catatan:
+ *
+ * Fix:
+ *  - Hapus duplikasi event listener submit form-akun & form-reset-pw
+ *    yang sebelumnya terdaftar dua kali:
+ *      1. di bindPageEvents()
+ *      2. di injectModalHtml() (setelah inject)
+ *    Solusi: semua binding dipusatkan HANYA di bindPageEvents(),
+ *    dan injectModalHtml() tidak mendaftarkan listener apapun.
+ */
+
 import {
     apiFetch, toast, confirmDelete,
     openModal, closeModal,
@@ -24,7 +36,7 @@ let currentPage  = 1;
 let searchQuery  = '';
 let filterRole   = '';
 let filterStatus = '';
-let editingId    = null;   // null = mode tambah, angka = mode edit
+let editingId    = null;
 let debounceTimer = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -33,9 +45,9 @@ const paginasiEl    = 'paginasi-pengguna';
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    injectModalHtml();
+    injectModalHtml();   // inject dulu, TANPA daftarkan listener di dalamnya
     injectStyles();
-    bindPageEvents();
+    bindPageEvents();    // semua listener didaftarkan di sini, SEKALI
     loadAkun();
 });
 
@@ -141,7 +153,7 @@ function showSkeleton() {
         </td></tr>`;
 }
 
-// ── Event binding ─────────────────────────────────────────────────────────────
+// ── Event binding — SATU TEMPAT, tidak ada duplikasi ─────────────────────────
 function bindPageEvents() {
 
     // Tombol tambah
@@ -181,13 +193,12 @@ function bindPageEvents() {
         if (resetBtn) bukaModalResetPassword(parseInt(resetBtn.dataset.id), resetBtn.dataset.nama);
     });
 
-    // Form submit modal akun
+    // ── Form submit — didaftarkan SEKALI di sini ──────────────────────────────
     document.getElementById('form-akun')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         await simpanAkun();
     });
 
-    // Form submit modal reset password
     document.getElementById('form-reset-pw')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         await simpanResetPassword();
@@ -198,7 +209,7 @@ function bindPageEvents() {
         toggleProfilFields(e.target.value);
     });
 
-    // Tutup modal
+    // Tutup modal — semua tombol [data-close-modal]
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
     });
@@ -414,7 +425,7 @@ function clearFormErrors(formId) {
         .forEach(el => { el.textContent = ''; el.style.display = 'none'; });
 }
 
-// ── Inject HTML (modal) ───────────────────────────────────────────────────────
+// ── Inject HTML (modal) — HANYA inject HTML, TANPA daftarkan listener ─────────
 function injectModalHtml() {
     const existing = document.getElementById('modal-akun');
     if (existing) return;
@@ -459,7 +470,7 @@ function injectModalHtml() {
         `;
     }
 
-    // Modal akun
+    // Inject modal HTML — TANPA addEventListener di sini
     document.body.insertAdjacentHTML('beforeend', `
         <div id="modal-akun" class="modal-overlay" style="display:none;">
             <div class="modal-box">
@@ -516,7 +527,7 @@ function injectModalHtml() {
                         <input id="akun-password" type="password" class="form-input" placeholder="Minimal 8 karakter">
                         <span id="err-password" class="form-error"></span>
                     </div>
-                    <div id="akun-password-group" class="form-group">
+                    <div class="form-group">
                         <label class="form-label">Konfirmasi Password</label>
                         <input id="akun-password-confirm" type="password" class="form-input" placeholder="Ulangi password">
                     </div>
@@ -557,19 +568,7 @@ function injectModalHtml() {
         </div>
     `);
 
-    // Re-bind setelah inject
-    document.querySelectorAll('[data-close-modal]').forEach(btn => {
-        btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
-    });
-    document.getElementById('form-akun')?.addEventListener('submit', async (e) => {
-        e.preventDefault(); await simpanAkun();
-    });
-    document.getElementById('form-reset-pw')?.addEventListener('submit', async (e) => {
-        e.preventDefault(); await simpanResetPassword();
-    });
-    document.getElementById('akun-role')?.addEventListener('change', (e) => {
-        toggleProfilFields(e.target.value);
-    });
+    // TIDAK ada addEventListener di sini — semua sudah ada di bindPageEvents()
 }
 
 // ── Shared CSS ────────────────────────────────────────────────────────────────
