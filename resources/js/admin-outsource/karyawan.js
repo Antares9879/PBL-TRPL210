@@ -19,6 +19,17 @@
  *   PUT    /api/admin/karyawan/{id}/reset-password
  */
 
+/**
+ * Fix:
+ *  - Hapus duplikasi event listener di injectModals().
+ *    Sebelumnya ada blok "Re-bind setelah inject" yang mendaftarkan:
+ *      - form-karyawan submit
+ *      - form-reset-pw-k submit
+ *      - querySelectorAll [data-close-modal]
+ *    padahal ketiga listener tersebut sudah terdaftar di bindEvents().
+ *    Solusi: injectModals() hanya inject HTML. Semua listener ada di bindEvents().
+ */
+
 import {
     apiFetch, esc, fmtTanggal, toast, confirmDelete,
     openModal, closeModal, badgeStatus, renderPaginasi,
@@ -35,9 +46,9 @@ let debounceTimer = null;
 document.addEventListener('DOMContentLoaded', () => {
     injectModalStyles();
     injectToolbar();
-    injectModals();
+    injectModals();      // inject HTML dulu
     updateThead();
-    bindEvents();
+    bindEvents();        // semua listener didaftarkan di sini, SEKALI
     loadDepartemenDropdown();
     loadKaryawan();
 });
@@ -319,7 +330,7 @@ async function simpanResetPassword() {
 // ── Dropdown departemen ───────────────────────────────────────────────────────
 async function loadDepartemenDropdown() {
     try {
-        const res = await apiFetch('/api/admin/lookup/departemen?status=aktif');
+        const res  = await apiFetch('/api/admin/lookup/departemen?status=aktif');
         const json = await res.json();
         const sel  = document.getElementById('k-departemen');
         const selF = document.getElementById('filter-dept');
@@ -333,7 +344,7 @@ async function loadDepartemenDropdown() {
     } catch { /* dropdown kosong */ }
 }
 
-// ── Event binding ─────────────────────────────────────────────────────────────
+// ── Event binding — SATU TEMPAT, tidak ada duplikasi ─────────────────────────
 function bindEvents() {
     document.getElementById('btn-tambah-karyawan')?.addEventListener('click', bukaModalTambah);
 
@@ -352,10 +363,10 @@ function bindEvents() {
 
     // Delegasi event tabel
     document.getElementById('tabel-karyawan')?.addEventListener('click', async e => {
-        const editBtn     = e.target.closest('.btn-edit');
-        const hapusBtn    = e.target.closest('.btn-hapus');
-        const aktifBtn    = e.target.closest('.btn-aktifkan');
-        const resetBtn    = e.target.closest('.btn-reset');
+        const editBtn  = e.target.closest('.btn-edit');
+        const hapusBtn = e.target.closest('.btn-hapus');
+        const aktifBtn = e.target.closest('.btn-aktifkan');
+        const resetBtn = e.target.closest('.btn-reset');
 
         if (editBtn)  bukaModalEdit(parseInt(editBtn.dataset.id));
         if (hapusBtn) await nonaktifkanKaryawan(parseInt(hapusBtn.dataset.id), hapusBtn.dataset.nama);
@@ -363,11 +374,18 @@ function bindEvents() {
         if (resetBtn) bukaModalResetPassword(parseInt(resetBtn.dataset.id), resetBtn.dataset.nama);
     });
 
-    // Form submit
-    document.getElementById('form-karyawan')?.addEventListener('submit', async e => { e.preventDefault(); await simpanKaryawan(); });
-    document.getElementById('form-reset-pw-k')?.addEventListener('submit', async e => { e.preventDefault(); await simpanResetPassword(); });
+    // ── Form submit — didaftarkan SEKALI di sini ──────────────────────────────
+    document.getElementById('form-karyawan')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await simpanKaryawan();
+    });
 
-    // Close modals
+    document.getElementById('form-reset-pw-k')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        await simpanResetPassword();
+    });
+
+    // Tutup modal — semua tombol [data-close-modal]
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
     });
@@ -406,7 +424,7 @@ function injectToolbar() {
         </select>
     `;
 
-    // Tombol tambah — tambahkan ke page-header jika belum ada
+    // Tombol tambah
     if (!document.getElementById('btn-tambah-karyawan')) {
         const btn = document.createElement('button');
         btn.id = 'btn-tambah-karyawan';
@@ -416,15 +434,18 @@ function injectToolbar() {
     }
 
     header.after(wrap);
-    // Inject paginasi container setelah tabel
+
+    // Paginasi container
     const panel = document.querySelector('.dash-panel--full .dash-panel-body');
     if (panel && !document.getElementById('paginasi-karyawan')) {
         panel.insertAdjacentHTML('beforeend', '<div id="paginasi-karyawan"></div>');
     }
 }
 
+// ── Inject Modal HTML — HANYA inject HTML, TANPA listener apapun ──────────────
 function injectModals() {
     if (document.getElementById('modal-karyawan')) return;
+
     document.body.insertAdjacentHTML('beforeend', `
         <!-- Modal Karyawan (tambah / edit) -->
         <div id="modal-karyawan" class="modal-overlay" style="display:none;">
@@ -532,12 +553,7 @@ function injectModals() {
         </div>
     `);
 
-    // Re-bind setelah inject
-    document.getElementById('form-karyawan')?.addEventListener('submit', async e => { e.preventDefault(); await simpanKaryawan(); });
-    document.getElementById('form-reset-pw-k')?.addEventListener('submit', async e => { e.preventDefault(); await simpanResetPassword(); });
-    document.querySelectorAll('[data-close-modal]').forEach(btn => {
-        btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
-    });
+    // TIDAK ada addEventListener di sini — semua sudah di bindEvents()
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
