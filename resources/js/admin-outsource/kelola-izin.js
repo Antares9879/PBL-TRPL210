@@ -9,6 +9,7 @@
  *
  * Endpoint:
  *   GET  /api/admin/validasi-izin              → daftar izin
+ *   GET  /api/admin/validasi-izin/{id}         → detail izin + dokumen
  *   POST /api/admin/validasi-izin/{id}         → approve / reject
  *   GET  /api/admin/izin/{id}/dokumen/{docId}  → stream file dokumen
  */
@@ -43,7 +44,8 @@ async function loadIzin(page = 1) {
     showSkeleton();
 
     const params = new URLSearchParams({ page });
-    if (filterStatus) params.set('status', filterStatus);
+    // Selalu kirim status. Nilai kosong (?status=) berarti "Semua Status".
+    params.set('status', filterStatus ?? '');
     if (searchQuery)  params.set('search', searchQuery);
 
     try {
@@ -199,22 +201,16 @@ async function bukaModalDokumen(idIzin, namaKaryawan) {
 
     try {
         // Ambil detail izin lengkap (termasuk dokumen)
-        const res  = await apiFetch(`/api/admin/validasi-izin?status=&search=`);
-        // Kita gunakan endpoint detail izin jika ada, atau re-use index dengan filter id
-        // Karena tidak ada endpoint detail, kita fetch list dan filter
-        // Alternatif: fetch khusus detail
+        const res  = await apiFetch(`/api/admin/validasi-izin/${idIzin}`);
         const json = await res.json();
-
-        // Cari baris yang sesuai
-        const rows    = json.data?.data ?? json.data ?? [];
-        const izinRow = rows.find(r => r.id_izin === idIzin);
-
-        if (!izinRow) {
-            // Fallback: coba fetch semua status
-            await _loadDokumenDariSemuaStatus(idIzin, namaKaryawan);
+        if (!json.status || !json.data) {
+            toast(json.message || 'Data izin tidak ditemukan.', 'error');
+            document.getElementById('modal-dok-list').innerHTML =
+                '<p style="color:#94a3b8;font-size:13px;padding:8px;">Data izin tidak ditemukan.</p>';
             return;
         }
 
+        const izinRow = json.data;
         selectedIzinData = izinRow;
         _renderDokumenList(izinRow);
 
@@ -222,43 +218,6 @@ async function bukaModalDokumen(idIzin, namaKaryawan) {
         console.error('[Dokumen] error:', err);
         document.getElementById('modal-dok-list').innerHTML =
             '<p style="color:#ef4444;font-size:13px;padding:8px;">Gagal memuat daftar dokumen.</p>';
-    }
-}
-
-/**
- * Fallback: jika izin tidak ditemukan di filter saat ini,
- * fetch tanpa filter status
- */
-async function _loadDokumenDariSemuaStatus(idIzin, namaKaryawan) {
-    try {
-        const res  = await apiFetch(`/api/admin/validasi-izin?status=`);
-        const json = await res.json();
-        const rows = json.data?.data ?? json.data ?? [];
-
-        // Cari di semua halaman — kita ambil page yang ada dulu
-        let izinRow = rows.find(r => r.id_izin === idIzin);
-
-        if (!izinRow) {
-            // Coba fetch per-page sampai ketemu (max 5 page)
-            for (let p = 2; p <= 5; p++) {
-                const r2   = await apiFetch(`/api/admin/validasi-izin?status=&page=${p}`);
-                const j2   = await r2.json();
-                const rows2 = j2.data?.data ?? j2.data ?? [];
-                izinRow = rows2.find(r => r.id_izin === idIzin);
-                if (izinRow || !j2.data?.next_page_url) break;
-            }
-        }
-
-        if (izinRow) {
-            selectedIzinData = izinRow;
-            _renderDokumenList(izinRow);
-        } else {
-            document.getElementById('modal-dok-list').innerHTML =
-                '<p style="color:#94a3b8;font-size:13px;padding:8px;">Data izin tidak ditemukan.</p>';
-        }
-    } catch {
-        document.getElementById('modal-dok-list').innerHTML =
-            '<p style="color:#ef4444;font-size:13px;padding:8px;">Gagal memuat data.</p>';
     }
 }
 
