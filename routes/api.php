@@ -125,6 +125,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('validasi-izin',
                 [ValidasiAbsensiApiController::class, 'indexIzin']
             )->name('validasi-izin.index');
+
+            Route::get('validasi-izin/{id}',
+                [ValidasiAbsensiApiController::class, 'showIzin']
+            )->name('validasi-izin.show');
     
             Route::post('validasi-izin/{id}',
                 [ValidasiAbsensiApiController::class, 'validasiIzin']

@@ -210,10 +210,20 @@ class ValidasiAbsensiApiController extends Controller
         ])
         ->whereHas('karyawan', fn($q) => $q->where('id_perusahaan', $idPerusahaan));
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->has('status')) {
+            $status = trim((string) $request->query('status', ''));
+            $statusValid = [
+                PengajuanIzin::STATUS_MENUNGGU,
+                PengajuanIzin::STATUS_DISETUJUI,
+                PengajuanIzin::STATUS_DITOLAK,
+            ];
+
+            // status kosong pada query (?status=) = tampilkan semua status
+            if ($status !== '' && in_array($status, $statusValid, true)) {
+                $query->where('status', $status);
+            }
         } else {
-            // Default: tampilkan yang menunggu
+            // Default tanpa filter: tampilkan yang menunggu
             $query->where('status', PengajuanIzin::STATUS_MENUNGGU);
         }
 
@@ -232,6 +242,34 @@ class ValidasiAbsensiApiController extends Controller
             'status'  => true,
             'message' => 'Data pengajuan izin berhasil dimuat.',
             'data'    => $data,
+        ]);
+    }
+
+    /**
+     * Detail satu pengajuan izin (termasuk dokumen).
+     */
+    public function showIzin(int $id): JsonResponse
+    {
+        $izin = PengajuanIzin::with([
+            'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,id_perusahaan',
+            'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
+            'dokumen:id_dokumen,id_izin,nama_file,tipe_file,ukuran_kb,diunggah_pada',
+        ])
+        ->whereHas('karyawan', fn($q) => $q->where('id_perusahaan', $this->getIdPerusahaan()))
+        ->find($id);
+
+        if (! $izin) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Pengajuan izin tidak ditemukan.',
+                'data'    => null,
+            ], 404);
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Detail pengajuan izin berhasil dimuat.',
+            'data'    => $this->formatIzin($izin, includeDokumen: true),
         ]);
     }
 
@@ -370,14 +408,15 @@ class ValidasiAbsensiApiController extends Controller
         ];
     }
 
-    private function formatIzin(PengajuanIzin $i): array
+    private function formatIzin(PengajuanIzin $i, bool $includeDokumen = false): array
     {
-        return [
+        $data = [
             'id_izin'              => $i->id_izin,
             'tanggal_izin'         => $i->tanggal_izin?->format('Y-m-d'),
             'karyawan'             => $i->karyawan ? [
                 'id_karyawan'  => $i->karyawan->id_karyawan,
                 'nama_lengkap' => $i->karyawan->nama_lengkap,
+                'nomor_karyawan' => $i->karyawan->nomor_karyawan ?? null,
             ] : null,
             'jenis_izin'           => $i->jenisIzin ? [
                 'nama_jenis'    => $i->jenisIzin->nama_jenis,
@@ -391,5 +430,18 @@ class ValidasiAbsensiApiController extends Controller
             'diajukan_pada'        => $i->diajukan_pada?->toDateTimeString(),
             'waktu_validasi_admin' => $i->waktu_validasi_admin?->toDateTimeString(),
         ];
+
+        if ($includeDokumen) {
+            $data['dokumen'] = $i->dokumen?->map(fn($d) => [
+                'id_dokumen'   => $d->id_dokumen,
+                'id_izin'      => $d->id_izin,
+                'nama_file'    => $d->nama_file,
+                'tipe_file'    => $d->tipe_file,
+                'ukuran_kb'    => $d->ukuran_kb,
+                'diunggah_pada'=> $d->diunggah_pada?->toDateTimeString(),
+            ])->values()->all() ?? [];
+        }
+
+        return $data;
     }
 }
