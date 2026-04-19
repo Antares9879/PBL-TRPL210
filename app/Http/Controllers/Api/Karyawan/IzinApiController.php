@@ -17,24 +17,25 @@ use Illuminate\Support\Str;
 /**
  * IzinApiController — F04, F05
  *
- * F04: Pengajuan izin tidak masuk dari karyawan.
+ * F04: Pengajuan izin tidak masuk dari karyawan (single-day & multi-day).
  * F05: Upload dokumen pendukung (surat dokter, surat undangan, dll.).
  *
  * Alur pengajuan izin:
- *   1. Karyawan isi form (jenis izin, tanggal, keterangan).
- *   2. Jika jenis izin wajib_dokumen = true, karyawan upload dokumen.
- *   3. Admin Outsource menerima notifikasi dan memvalidasi (F10).
+ *   1. Karyawan isi form (jenis izin, tanggal mulai, tanggal selesai, keterangan).
+ *   2. Satu record = satu pengajuan untuk seluruh range tanggal.
+ *   3. Jika tanggal_selesai_izin tidak diisi, dianggap izin 1 hari.
+ *   4. Jika jenis izin wajib_dokumen = true, karyawan upload dokumen.
+ *   5. Admin Outsource menerima notifikasi dan memvalidasi (F10).
  *
- * Dokumen disimpan di storage/app/private/dokumen-izin/{id_izin}/.
- * Akses file hanya lewat controller dengan verifikasi hak akses.
+ * Cek overlap: ditolak jika ada pengajuan aktif yang tanggalnya overlap dengan range baru.
  *
  * Endpoints:
- *   GET    /api/karyawan/izin                    → index()
- *   POST   /api/karyawan/izin                    → store()   F04
- *   GET    /api/karyawan/izin/{id}               → show()
- *   POST   /api/karyawan/izin/{id}/dokumen        → uploadDokumen() F05
- *   GET    /api/karyawan/izin/{id}/dokumen/{docId}→ downloadDokumen()
- *   GET    /api/karyawan/jenis-izin              → jenisIzin() — lookup
+ *   GET    /api/karyawan/izin                          → index()
+ *   POST   /api/karyawan/izin                          → store()   F04
+ *   GET    /api/karyawan/izin/{id}                     → show()
+ *   POST   /api/karyawan/izin/{id}/dokumen             → uploadDokumen() F05
+ *   GET    /api/karyawan/izin/{id}/dokumen/{docId}     → downloadDokumen()
+ *   GET    /api/karyawan/jenis-izin                    → jenisIzin() — lookup
  */
 class IzinApiController extends Controller
 {
@@ -79,7 +80,11 @@ class IzinApiController extends Controller
     }
 
     /**
-     * Buat pengajuan izin baru.
+     * Buat pengajuan izin baru (single-day atau multi-day).
+     *
+     * Logika tanggal:
+     *   - Jika tanggal_selesai_izin tidak dikirim/null → izin 1 hari, tanggal_selesai = tanggal_izin
+     *   - Cek overlap: tidak boleh ada pengajuan aktif yang tanggalnya bersinggungan
      */
     public function store(StoreIzinRequest $request): JsonResponse
     {
@@ -94,16 +99,20 @@ class IzinApiController extends Controller
             ], 404);
         }
 
-        // Cek apakah sudah ada izin aktif untuk tanggal yang sama
+        // Normalisasi tanggal selesai: jika tidak diisi, sama dengan tanggal mulai
+        $tanggalMulai   = $request->tanggal_izin;
+        $tanggalSelesai = $request->tanggal_selesai_izin ?? $tanggalMulai;
+
+        // Cek overlap: apakah ada pengajuan aktif yang tanggalnya bersinggungan?
         $sudahAda = PengajuanIzin::where('id_karyawan', $karyawan->id_karyawan)
-            ->whereDate('tanggal_izin', $request->tanggal_izin)
             ->whereIn('status', [PengajuanIzin::STATUS_MENUNGGU, PengajuanIzin::STATUS_DISETUJUI])
+            ->overlapDengan($tanggalMulai, $tanggalSelesai)
             ->exists();
 
         if ($sudahAda) {
             return response()->json([
                 'status'  => false,
-                'message' => 'Sudah ada pengajuan izin aktif untuk tanggal ini.',
+                'message' => 'Sudah ada pengajuan izin aktif yang tanggalnya bertabrakan dengan periode yang Anda pilih.',
                 'data'    => null,
             ], 422);
         }
@@ -111,13 +120,14 @@ class IzinApiController extends Controller
         $jenisIzin = JenisIzin::find($request->id_jenis_izin);
 
         $izin = PengajuanIzin::create([
-            'id_karyawan'   => $karyawan->id_karyawan,
-            'id_jenis_izin' => $request->id_jenis_izin,
-            'tanggal_izin'  => $request->tanggal_izin,
-            'keterangan'    => $request->keterangan,
-            'status'        => PengajuanIzin::STATUS_MENUNGGU,
-            'status_dokumen'=> PengajuanIzin::DOKUMEN_BELUM_UPLOAD,
-            'diajukan_pada' => now(),
+            'id_karyawan'          => $karyawan->id_karyawan,
+            'id_jenis_izin'        => $request->id_jenis_izin,
+            'tanggal_izin'         => $tanggalMulai,
+            'tanggal_selesai_izin' => $tanggalSelesai,
+            'keterangan'           => $request->keterangan,
+            'status'               => PengajuanIzin::STATUS_MENUNGGU,
+            'status_dokumen'       => PengajuanIzin::DOKUMEN_BELUM_UPLOAD,
+            'diajukan_pada'        => now(),
         ]);
 
         // Notifikasi ke Admin Outsource
@@ -127,13 +137,16 @@ class IzinApiController extends Controller
             ->get()
             ->pluck('pengguna.id_pengguna');
 
+        // Buat label periode untuk notifikasi
+        $periodeLabel = $tanggalMulai === $tanggalSelesai
+            ? \Carbon\Carbon::parse($tanggalMulai)->format('d M Y')
+            : \Carbon\Carbon::parse($tanggalMulai)->format('d M Y') . ' – ' . \Carbon\Carbon::parse($tanggalSelesai)->format('d M Y');
+
         foreach ($adminPengguna as $idAdmin) {
             NotifikasiService::kirim(
                 idPenerima:  $idAdmin,
                 judul:       "{$karyawan->nama_lengkap} mengajukan izin {$jenisIzin->nama_jenis}",
-                isi:         "Pengajuan izin {$jenisIzin->nama_jenis} pada " .
-                             \Carbon\Carbon::parse($request->tanggal_izin)->format('d M Y') .
-                             ". Menunggu validasi Anda.",
+                isi:         "Pengajuan izin {$jenisIzin->nama_jenis} pada {$periodeLabel}. Menunggu validasi Anda.",
                 jenis:       \App\Models\Notifikasi::JENIS_IZIN,
                 idPengirim:  $pengguna->id_pengguna,
                 idReferensi: $izin->id_izin,
@@ -188,9 +201,6 @@ class IzinApiController extends Controller
 
     /**
      * Upload dokumen pendukung untuk satu pengajuan izin.
-     *
-     * File disimpan di: storage/app/private/dokumen-izin/{id_izin}/{uuid}.{ext}
-     * Nama file asli disimpan di kolom nama_file untuk tampilan.
      */
     public function uploadDokumen(UploadDokumenRequest $request, int $id): JsonResponse
     {
@@ -209,7 +219,6 @@ class IzinApiController extends Controller
             ], 404);
         }
 
-        // Hanya boleh upload jika izin masih menunggu
         if ($izin->status !== PengajuanIzin::STATUS_MENUNGGU) {
             return response()->json([
                 'status'  => false,
@@ -236,7 +245,6 @@ class IzinApiController extends Controller
             'diunggah_pada' => now(),
         ]);
 
-        // Update status dokumen izin
         $izin->update(['status_dokumen' => PengajuanIzin::DOKUMEN_SUDAH_UPLOAD]);
 
         return response()->json([
@@ -254,7 +262,6 @@ class IzinApiController extends Controller
 
     /**
      * Download / stream dokumen izin.
-     * Hanya pemilik pengajuan yang boleh mengakses.
      */
     public function downloadDokumen(int $id, int $docId): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
@@ -305,26 +312,33 @@ class IzinApiController extends Controller
 
     private function formatIzin(PengajuanIzin $i): array
     {
+        // Hitung jumlah hari (inklusif, handle null tanggal_selesai)
+        $tanggalMulai   = $i->tanggal_izin;
+        $tanggalSelesai = $i->tanggal_selesai_izin ?? $i->tanggal_izin;
+        $jumlahHari     = (int) $tanggalMulai->diffInDays($tanggalSelesai) + 1;
+
         return [
-            'id_izin'          => $i->id_izin,
-            'tanggal_izin'     => $i->tanggal_izin?->format('Y-m-d'),
-            'jenis_izin'       => $i->jenisIzin ? [
+            'id_izin'              => $i->id_izin,
+            'tanggal_izin'         => $i->tanggal_izin?->format('Y-m-d'),
+            'tanggal_selesai_izin' => $i->tanggal_selesai_izin?->format('Y-m-d'),
+            'jumlah_hari'          => $jumlahHari,
+            'jenis_izin'           => $i->jenisIzin ? [
                 'nama_jenis'    => $i->jenisIzin->nama_jenis,
                 'wajib_dokumen' => $i->jenisIzin->wajib_dokumen,
             ] : null,
-            'keterangan'       => $i->keterangan,
-            'status'           => $i->status,
-            'catatan_penolakan'=> $i->catatan_penolakan,
-            'status_dokumen'   => $i->status_dokumen,
-            'jumlah_dokumen'   => $i->dokumen?->count() ?? 0,
-            'dokumen'          => $i->dokumen?->map(fn($d) => [
+            'keterangan'           => $i->keterangan,
+            'status'               => $i->status,
+            'catatan_penolakan'    => $i->catatan_penolakan,
+            'status_dokumen'       => $i->status_dokumen,
+            'jumlah_dokumen'       => $i->dokumen?->count() ?? 0,
+            'dokumen'              => $i->dokumen?->map(fn($d) => [
                 'id_dokumen'   => $d->id_dokumen,
                 'nama_file'    => $d->nama_file,
                 'tipe_file'    => $d->tipe_file,
                 'ukuran_kb'    => $d->ukuran_kb,
                 'diunggah_pada'=> $d->diunggah_pada?->toDateTimeString(),
             ])->values() ?? [],
-            'diajukan_pada'    => $i->diajukan_pada?->toDateTimeString(),
+            'diajukan_pada'        => $i->diajukan_pada?->toDateTimeString(),
         ];
     }
 }

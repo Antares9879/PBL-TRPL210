@@ -4,6 +4,8 @@
  * Halaman Pengajuan Izin (F04, F05).
  * Fitur:
  *   - Dropdown jenis izin dari GET /api/karyawan/jenis-izin
+ *   - Input range tanggal: tanggal mulai + tanggal selesai (bisa sama untuk 1 hari)
+ *   - Preview jumlah hari izin secara real-time
  *   - Notifikasi wajib dokumen saat jenis memerlukan upload
  *   - Form submit via JSON ke POST /api/karyawan/izin
  *   - Setelah submit berhasil → pindah otomatis ke tab Riwayat
@@ -11,6 +13,11 @@
  *   - Modal upload dokumen via FormData ke POST /api/karyawan/izin/{id}/dokumen
  *   - Drag-and-drop dan klik file drop zone
  *   - Preview nama file sebelum upload
+ *
+ * FIX: Bug modal tombol batal/tutup/upload tidak berfungsi karena
+ *      input[type="file"] dengan position:absolute menutupi seluruh drop zone.
+ *      Solusi: pointer-events dinonaktifkan di level drop zone, file input
+ *      hanya dipicu secara programatik via klik pada drop zone label.
  *
  * Endpoints:
  *   GET  /api/karyawan/jenis-izin            → lookup dropdown
@@ -97,7 +104,6 @@ async function loadJenisIzin() {
         const select = document.getElementById('izin-jenis');
         if (!select) return;
 
-        // Tambahkan opsi dari API
         state.jenisIzinList.forEach((j) => {
             const opt = document.createElement('option');
             opt.value       = j.id_jenis_izin;
@@ -107,7 +113,7 @@ async function loadJenisIzin() {
             select.appendChild(opt);
         });
 
-    } catch (err) {
+    } catch {
         toast('Gagal memuat jenis izin.', 'error');
     }
 }
@@ -117,12 +123,30 @@ async function loadJenisIzin() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 function bindForm() {
-    const jenisSelect   = document.getElementById('izin-jenis');
-    const keteranganEl  = document.getElementById('izin-keterangan');
-    const resetBtn      = document.getElementById('btn-reset-izin');
-    const form          = document.getElementById('form-izin');
+    const jenisSelect    = document.getElementById('izin-jenis');
+    const tanggalMulai   = document.getElementById('izin-tanggal-mulai');
+    const tanggalSelesai = document.getElementById('izin-tanggal-selesai');
+    const keteranganEl   = document.getElementById('izin-keterangan');
+    const resetBtn       = document.getElementById('btn-reset-izin');
+    const form           = document.getElementById('form-izin');
 
     jenisSelect?.addEventListener('change', onJenisChange);
+
+    // Saat tanggal mulai berubah: update min tanggal selesai + hitung hari
+    tanggalMulai?.addEventListener('change', () => {
+        const val = tanggalMulai.value;
+        if (tanggalSelesai) {
+            tanggalSelesai.min = val;
+            // Jika tanggal selesai sudah diisi tapi lebih awal dari mulai → reset
+            if (tanggalSelesai.value && tanggalSelesai.value < val) {
+                tanggalSelesai.value = val;
+            }
+        }
+        updateJumlahHariPreview();
+    });
+
+    // Saat tanggal selesai berubah: hitung hari
+    tanggalSelesai?.addEventListener('change', updateJumlahHariPreview);
 
     keteranganEl?.addEventListener('input', () => {
         const counter = document.getElementById('keterangan-count');
@@ -131,6 +155,29 @@ function bindForm() {
 
     resetBtn?.addEventListener('click', resetForm);
     form?.addEventListener('submit', handleFormSubmit);
+}
+
+/**
+ * Update preview jumlah hari secara real-time.
+ */
+function updateJumlahHariPreview() {
+    const mulaiEl   = document.getElementById('izin-tanggal-mulai');
+    const selesaiEl = document.getElementById('izin-tanggal-selesai');
+    const previewEl = document.getElementById('izin-jumlah-hari-preview');
+    const angkaEl   = document.getElementById('izin-jumlah-hari-angka');
+
+    if (!mulaiEl?.value || !previewEl || !angkaEl) return;
+
+    const mulai   = new Date(mulaiEl.value + 'T00:00:00');
+    // Jika tanggal selesai kosong, anggap 1 hari
+    const selesai = selesaiEl?.value
+        ? new Date(selesaiEl.value + 'T00:00:00')
+        : mulai;
+
+    const hari = Math.round((selesai - mulai) / (1000 * 60 * 60 * 24)) + 1;
+
+    angkaEl.textContent = hari > 1 ? `${hari} hari` : '1 hari';
+    previewEl.style.display = mulaiEl.value ? 'flex' : 'none';
 }
 
 function onJenisChange(e) {
@@ -148,10 +195,14 @@ async function handleFormSubmit(e) {
     clearFieldErrors();
 
     const form = e.target;
+    const tanggalMulai   = form.tanggal_izin?.value;
+    const tanggalSelesai = form.tanggal_selesai_izin?.value || null;
+
     const data = {
-        id_jenis_izin: parseInt(form.id_jenis_izin?.value, 10) || null,
-        tanggal_izin:  form.tanggal_izin?.value,
-        keterangan:    form.keterangan?.value?.trim() || null,
+        id_jenis_izin:        parseInt(form.id_jenis_izin?.value, 10) || null,
+        tanggal_izin:         tanggalMulai,
+        tanggal_selesai_izin: tanggalSelesai,
+        keterangan:           form.keterangan?.value?.trim() || null,
     };
 
     if (!validateIzinForm(data)) return;
@@ -182,7 +233,7 @@ async function handleFormSubmit(e) {
 
         resetForm();
 
-        // Pindah ke tab riwayat (sesuai keputusan UX)
+        // Pindah ke tab riwayat
         switchTab('riwayat');
         await loadRiwayatIzin(1);
         countPending();
@@ -208,7 +259,13 @@ function validateIzinForm(data) {
         valid = false;
     }
     if (!data.tanggal_izin) {
-        showFieldError('err-izin-tanggal', 'Tanggal izin wajib diisi.');
+        showFieldError('err-izin-tanggal-mulai', 'Tanggal mulai izin wajib diisi.');
+        valid = false;
+    }
+    // Validasi: tanggal selesai tidak boleh sebelum tanggal mulai
+    if (data.tanggal_selesai_izin && data.tanggal_izin &&
+        data.tanggal_selesai_izin < data.tanggal_izin) {
+        showFieldError('err-izin-tanggal-selesai', 'Tanggal selesai tidak boleh sebelum tanggal mulai.');
         valid = false;
     }
 
@@ -256,7 +313,7 @@ async function loadRiwayatIzin(page) {
 
         container.innerHTML = list.map((i) => _renderIzinItem(i)).join('');
 
-        // Bind tombol upload dokumen
+        // Bind tombol upload dokumen setelah render
         container.querySelectorAll('[data-upload-izin-id]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 const id      = parseInt(btn.dataset.uploadIzinId, 10);
@@ -291,26 +348,66 @@ async function countPending() {
 // 7. MODAL UPLOAD DOKUMEN (F05)
 // ══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * FIX: Root cause bug tombol batal/tutup/upload tidak berfungsi:
+ *
+ * Di blade sebelumnya, input[type="file"] punya style:
+ *   position:absolute; inset:0; opacity:0; width:100%; height:100%
+ * Ini membuat input menutup SELURUH AREA MODAL, sehingga klik tombol
+ * apapun (batal, tutup, upload) justru memicu file picker.
+ *
+ * FIX: Input file TIDAK lagi di-overlay sebagai full-area click trap.
+ * Sebagai gantinya, klik pada drop zone dipicu programatik via JS
+ * saat user klik label/area yang visible. Input file tetap ada tapi
+ * hanya bisa diakses via fileInput.click() yang dipanggil JS.
+ * Tombol modal lain tidak terhalang sama sekali.
+ */
 function bindModal() {
-    const modal     = document.getElementById('modal-upload-dokumen');
-    const closeBtn  = document.getElementById('btn-close-modal-dokumen');
-    const cancelBtn = document.getElementById('btn-cancel-upload');
-    const confirmBtn= document.getElementById('btn-confirm-upload');
-    const dropZone  = document.getElementById('file-drop-zone');
-    const fileInput = document.getElementById('input-dokumen-file');
+    const modal      = document.getElementById('modal-upload-dokumen');
+    const closeBtn   = document.getElementById('btn-close-modal-dokumen');
+    const cancelBtn  = document.getElementById('btn-cancel-upload');
+    const confirmBtn = document.getElementById('btn-confirm-upload');
+    const dropZone   = document.getElementById('file-drop-zone');
+    const fileInput  = document.getElementById('input-dokumen-file');
 
-    // Tutup modal
-    const closeModal = () => modal?.classList.remove('k-modal--open');
+    // ── Tutup modal (event listener ini sekarang bisa di-klik karena input tidak menghalangi) ──
+    const closeModal = () => {
+        modal?.classList.remove('k-modal--open');
+        // Reset state upload saat modal ditutup
+        state.uploadFile = null;
+        state.uploadTargetIzinId = null;
+    };
+
     closeBtn?.addEventListener('click',  closeModal);
     cancelBtn?.addEventListener('click', closeModal);
+
+    // Tutup saat klik overlay (bukan box modal-nya)
     modal?.addEventListener('click', (e) => {
         if (e.target === modal) closeModal();
     });
 
-    // File input change
-    fileInput?.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
-        if (file) setUploadFile(file);
+    // ESC untuk tutup modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal?.classList.contains('k-modal--open')) {
+            closeModal();
+        }
+    });
+
+    // ── Klik pada drop zone → trigger file input secara programatik ──
+    // Input TIDAK lagi di-overlay; kita pakai klik programatik agar
+    // tombol lain di luar drop zone tetap bisa diklik normal.
+    dropZone?.addEventListener('click', (e) => {
+        // Pastikan klik bukan dari tombol remove-file di dalam drop zone
+        if (e.target.closest('#btn-remove-file')) return;
+        fileInput?.click();
+    });
+
+    // Keyboard support untuk drop zone (Enter/Space memicu file picker)
+    dropZone?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput?.click();
+        }
     });
 
     // Drag and drop
@@ -328,12 +425,12 @@ function bindModal() {
         if (file) setUploadFile(file);
     });
 
-    // Keyboard support drop zone
-    dropZone?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            fileInput?.click();
-        }
+    // File input change (dipicu oleh fileInput.click())
+    fileInput?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) setUploadFile(file);
+        // Reset value agar onChange terpicu lagi jika user pilih file sama
+        e.target.value = '';
     });
 
     // Confirm upload
@@ -351,9 +448,12 @@ function openUploadModal(izinId, izinData) {
     const input   = document.getElementById('input-dokumen-file');
 
     if (infoEl) {
-        const jenis   = izinData?.jenis_izin?.nama_jenis ?? '—';
-        const tanggal = formatDate(izinData?.tanggal_izin);
-        infoEl.textContent = `${jenis} — ${tanggal}`;
+        const jenis        = izinData?.jenis_izin?.nama_jenis ?? '—';
+        const tanggalMulai = formatDate(izinData?.tanggal_izin);
+        const tanggalAkhir = izinData?.tanggal_selesai_izin && izinData.tanggal_selesai_izin !== izinData.tanggal_izin
+            ? ' – ' + formatDate(izinData.tanggal_selesai_izin)
+            : '';
+        infoEl.textContent = `${jenis} — ${tanggalMulai}${tanggalAkhir}`;
     }
 
     if (preview) preview.innerHTML = '';
@@ -392,7 +492,6 @@ function setUploadFile(file) {
     state.uploadFile = file;
     if (confirm) confirm.disabled = false;
 
-    // Tampilkan preview
     const sizeKb = (file.size / 1024).toFixed(0);
     if (preview) {
         preview.innerHTML = `
@@ -406,14 +505,16 @@ function setUploadFile(file) {
                 <span class="k-file-item-name">${_escapeHtml(file.name)}</span>
                 <span class="k-file-item-size">${sizeKb} KB</span>
                 <button type="button" class="k-file-item-remove" id="btn-remove-file"
-                        aria-label="Hapus file">
+                        aria-label="Hapus file yang dipilih">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>`;
 
-        document.getElementById('btn-remove-file')?.addEventListener('click', () => {
+        // Bind tombol hapus file — stopPropagation agar klik tidak memicu drop zone
+        document.getElementById('btn-remove-file')?.addEventListener('click', (e) => {
+            e.stopPropagation();
             state.uploadFile = null;
             preview.innerHTML = '';
             if (confirm) confirm.disabled = true;
@@ -446,7 +547,10 @@ async function handleUploadConfirm() {
         toast('Dokumen berhasil diunggah.', 'success');
         document.getElementById('modal-upload-dokumen')?.classList.remove('k-modal--open');
 
-        // Reload riwayat
+        state.uploadFile = null;
+        state.uploadTargetIzinId = null;
+
+        // Reload riwayat untuk tampilkan status dokumen terbaru
         loadRiwayatIzin(state.riwayatPage);
 
     } catch (err) {
@@ -490,6 +594,16 @@ function _renderIzinItem(i) {
         tidak_lengkap: '<span style="font-size:11px;color:var(--status-alpa);">✕ Dokumen tidak lengkap</span>',
     }[i.status_dokumen] ?? '';
 
+    // Label tanggal: tampilkan range jika multi-hari
+    const tanggalLabel = (i.tanggal_selesai_izin && i.tanggal_selesai_izin !== i.tanggal_izin)
+        ? `${formatDate(i.tanggal_izin)} – ${formatDate(i.tanggal_selesai_izin)}`
+        : formatDate(i.tanggal_izin);
+
+    const hariLabel = i.jumlah_hari > 1
+        ? `<span style="font-size:11px;color:var(--eco-600);font-weight:600;">${i.jumlah_hari} hari</span>
+           <span class="k-pengajuan-meta-dot" aria-hidden="true"></span>`
+        : '';
+
     return `
         <div class="k-pengajuan-item">
             <div class="k-pengajuan-icon ${statusIcon}" aria-hidden="true">
@@ -501,9 +615,10 @@ function _renderIzinItem(i) {
             <div class="k-pengajuan-body">
                 <p class="k-pengajuan-title">
                     ${_escapeHtml(i.jenis_izin?.nama_jenis ?? '—')} &mdash;
-                    ${formatDate(i.tanggal_izin)}
+                    ${tanggalLabel}
                 </p>
                 <div class="k-pengajuan-meta">
+                    ${hariLabel}
                     ${i.keterangan ? `<span>${_escapeHtml(i.keterangan)}</span>
                         <span class="k-pengajuan-meta-dot" aria-hidden="true"></span>` : ''}
                     ${dokStatus}
@@ -548,8 +663,12 @@ function _emptyIzin(msg) {
 
 function resetForm() {
     document.getElementById('form-izin')?.reset();
-    document.getElementById('keterangan-count').textContent = '0';
-    document.getElementById('izin-wajib-dokumen-info').style.display = 'none';
+    const counter = document.getElementById('keterangan-count');
+    if (counter) counter.textContent = '0';
+    const wajibInfo = document.getElementById('izin-wajib-dokumen-info');
+    if (wajibInfo) wajibInfo.style.display = 'none';
+    const hariPreview = document.getElementById('izin-jumlah-hari-preview');
+    if (hariPreview) hariPreview.style.display = 'none';
     hideFormAlert();
     clearFieldErrors();
 }
@@ -601,9 +720,10 @@ function clearFieldErrors() {
 
 function renderFieldErrors(errors) {
     const fieldMap = {
-        id_jenis_izin: 'err-izin-jenis',
-        tanggal_izin:  'err-izin-tanggal',
-        keterangan:    'err-izin-keterangan',
+        id_jenis_izin:        'err-izin-jenis',
+        tanggal_izin:         'err-izin-tanggal-mulai',
+        tanggal_selesai_izin: 'err-izin-tanggal-selesai',
+        keterangan:           'err-izin-keterangan',
     };
     Object.entries(errors).forEach(([field, msgs]) => {
         const id = fieldMap[field];
