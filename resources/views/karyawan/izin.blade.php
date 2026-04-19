@@ -73,15 +73,12 @@
                             required
                             aria-describedby="err-izin-jenis">
                         <option value="">— Pilih Jenis Izin —</option>
-                        {{--
-                            Opsi diisi JS via GET /api/karyawan/jenis-izin
-                            setelah halaman dimuat.
-                        --}}
+                        {{-- Opsi diisi JS via GET /api/karyawan/jenis-izin --}}
                     </select>
                     <span class="k-field-error" id="err-izin-jenis"></span>
                 </div>
 
-                {{-- Notifikasi wajib dokumen — muncul JS jika jenis terpilih wajib_dokumen=true --}}
+                {{-- Notifikasi wajib dokumen --}}
                 <div id="izin-wajib-dokumen-info" style="display:none;">
                     <div class="k-alert k-alert--warning" style="font-size:12px;">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -90,27 +87,55 @@
                         </svg>
                         <div>
                             <p style="font-weight:600;margin-bottom:2px;">Dokumen Wajib Dilampirkan</p>
-                            <p>Jenis izin ini memerlukan dokumen pendukung (mis. surat dokter, surat keterangan).
-                               Upload dokumen setelah pengajuan disetujui, atau sertakan segera di sini.</p>
+                            <p>Jenis izin ini memerlukan dokumen pendukung (mis. surat dokter).
+                               Upload dokumen setelah pengajuan berhasil dikirim.</p>
                         </div>
                     </div>
                 </div>
 
-                {{-- Tanggal izin --}}
-                <div class="k-form-group">
-                    <label for="izin-tanggal" class="k-label">
-                        Tanggal Izin <span style="color:#ef4444;">*</span>
-                    </label>
-                    <input type="date"
-                           id="izin-tanggal"
-                           name="tanggal_izin"
-                           class="k-input"
-                           required
-                           aria-describedby="err-izin-tanggal">
-                    <span class="k-input-hint">
-                        Bisa untuk tanggal mendatang atau tanggal yang sudah lewat.
-                    </span>
-                    <span class="k-field-error" id="err-izin-tanggal"></span>
+                {{-- ── RANGE TANGGAL ──────────────────────────────────── --}}
+                <div class="k-form-row">
+                    {{-- Tanggal Mulai --}}
+                    <div class="k-form-group">
+                        <label for="izin-tanggal-mulai" class="k-label">
+                            Tanggal Mulai <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input type="date"
+                               id="izin-tanggal-mulai"
+                               name="tanggal_izin"
+                               class="k-input"
+                               required
+                               aria-describedby="err-izin-tanggal-mulai">
+                        <span class="k-field-error" id="err-izin-tanggal-mulai"></span>
+                    </div>
+
+                    {{-- Tanggal Selesai --}}
+                    <div class="k-form-group">
+                        <label for="izin-tanggal-selesai" class="k-label">
+                            Tanggal Selesai
+                            <span style="color:var(--text-muted);font-weight:400;
+                                         text-transform:none;letter-spacing:0;font-size:11px;">
+                                (Opsional — kosongkan untuk 1 hari)
+                            </span>
+                        </label>
+                        <input type="date"
+                               id="izin-tanggal-selesai"
+                               name="tanggal_selesai_izin"
+                               class="k-input"
+                               aria-describedby="err-izin-tanggal-selesai">
+                        <span class="k-field-error" id="err-izin-tanggal-selesai"></span>
+                    </div>
+                </div>
+
+                {{-- Preview jumlah hari — diisi JS --}}
+                <div id="izin-jumlah-hari-preview"
+                     style="display:none;background:var(--eco-50);border:1px solid var(--eco-200);
+                            border-radius:var(--radius-md);padding:var(--space-2) var(--space-4);
+                            align-items:center;justify-content:space-between;margin-bottom:var(--space-1);">
+                    <span style="font-size:13px;color:var(--eco-700);">Durasi izin:</span>
+                    <span style="font-family:var(--font-display);font-size:18px;font-weight:700;
+                                 color:var(--eco-700);letter-spacing:-0.02em;"
+                          id="izin-jumlah-hari-angka">1 hari</span>
                 </div>
 
                 {{-- Keterangan --}}
@@ -173,7 +198,6 @@
 
             {{-- List riwayat izin --}}
             <div id="riwayat-izin-list">
-                {{-- Skeleton --}}
                 @for ($i = 0; $i < 3; $i++)
                     <div class="k-pengajuan-item">
                         <div class="k-skel k-skel--block"
@@ -201,8 +225,12 @@
 
 {{-- ══ MODAL: Upload Dokumen (F05) ════════════════════════════════════════ --}}
 {{--
-    Modal ini dibuka JS ketika user klik tombol "Upload Dokumen" di riwayat izin.
-    Endpoint: POST /api/karyawan/izin/{id}/dokumen
+    FIX: Input file TIDAK lagi menggunakan position:absolute;inset:0 yang menutupi
+    seluruh area modal. Input file sekarang disembunyikan secara normal (display:none)
+    dan hanya diakses via fileInput.click() yang dipanggil JS saat user klik drop zone.
+
+    Dengan pendekatan ini, tombol "Batal", "✕", dan "Upload Dokumen" dapat diklik
+    secara normal tanpa terhalangi oleh overlay input file.
 --}}
 <div id="modal-upload-dokumen" class="k-modal-overlay" aria-modal="true" role="dialog"
      aria-labelledby="modal-upload-title">
@@ -213,6 +241,7 @@
         <div class="k-modal-header">
             <h3 class="k-modal-title" id="modal-upload-title">Upload Dokumen Izin</h3>
             <button class="k-modal-close" id="btn-close-modal-dokumen"
+                    type="button"
                     aria-label="Tutup modal">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -233,10 +262,17 @@
             {{-- Alert upload --}}
             <div id="upload-alert" class="k-alert" style="display:none;margin-bottom:var(--space-3);"></div>
 
-            {{-- File drop zone --}}
+            {{--
+                FIX: Drop zone sekarang adalah elemen visual biasa (cursor:pointer, tabindex).
+                Input file disembunyikan dengan display:none dan hanya dipicu via JS.
+                Ini memastikan tombol di luar drop zone (Batal, ✕) bisa diklik normal.
+            --}}
             <div class="k-file-drop" id="file-drop-zone"
-                 role="button" tabindex="0"
+                 role="button"
+                 tabindex="0"
+                 style="position:relative;cursor:pointer;"
                  aria-label="Area upload dokumen. Klik atau seret file ke sini.">
+
                 <div class="k-file-drop-icon">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -248,12 +284,16 @@
                 </p>
                 <p class="k-file-drop-hint">PDF, JPG, PNG — Maks. 2 MB per file</p>
 
-                {{-- Hidden file input --}}
+                {{--
+                    Input file TIDAK menggunakan position:absolute;inset:0 lagi.
+                    display:none membuatnya tidak terlihat dan tidak menghalangi elemen lain.
+                    Dipicu via JS dengan fileInput.click() saat user klik drop zone.
+                --}}
                 <input type="file"
                        id="input-dokumen-file"
                        name="dokumen"
                        accept=".pdf,.jpg,.jpeg,.png"
-                       style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;"
+                       style="display:none;"
                        aria-hidden="true">
             </div>
 

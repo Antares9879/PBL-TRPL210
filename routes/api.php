@@ -129,6 +129,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('validasi-izin/{id}',
                 [ValidasiAbsensiApiController::class, 'validasiIzin']
             )->name('validasi-izin.validasi');
+
+            Route::get(
+                '/izin/{id}/dokumen/{docId}',
+                [\App\Http\Controllers\Api\AdminOutsource\DokumenIzinAdminController::class, 'stream']
+            );
         });
 
     // ── F12 + Dashboard — User Departemen ─────────────────────────────────
