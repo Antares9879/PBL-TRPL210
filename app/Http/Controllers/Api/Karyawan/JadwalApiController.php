@@ -38,7 +38,6 @@ class JadwalApiController extends Controller
         $bulan = (int) $request->get('bulan', now()->month);
         $tahun = (int) $request->get('tahun', now()->year);
 
-        // Validasi rentang bulan dan tahun
         if ($bulan < 1 || $bulan > 12) {
             return response()->json([
                 'status'  => false,
@@ -54,6 +53,9 @@ class JadwalApiController extends Controller
         ->where('id_karyawan', $karyawan->id_karyawan)
         ->whereMonth('tanggal_kerja', $bulan)
         ->whereYear('tanggal_kerja', $tahun)
+        // ── FIX: hanya ambil jadwal dari planning yang aktif ──────────────
+        ->whereHas('planning', fn($q) => $q->where('status', 'aktif'))
+        // ─────────────────────────────────────────────────────────────────
         ->orderBy('tanggal_kerja')
         ->get()
         ->map(fn($j) => $this->formatJadwal($j));
@@ -62,10 +64,7 @@ class JadwalApiController extends Controller
             'status'  => true,
             'message' => 'Data jadwal berhasil dimuat.',
             'data'    => [
-                'periode' => [
-                    'bulan' => $bulan,
-                    'tahun' => $tahun,
-                ],
+                'periode' => ['bulan' => $bulan, 'tahun' => $tahun],
                 'jadwal'  => $jadwal,
             ],
         ]);

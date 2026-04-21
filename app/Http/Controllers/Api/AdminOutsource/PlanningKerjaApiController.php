@@ -498,7 +498,17 @@ class PlanningKerjaApiController extends Controller
 
         try {
             $planningBaru = DB::transaction(function () use ($request, $planningLama, $idPerusahaan, $admin) {
+                
+                // ── FIX: hapus jadwal_kerja dari planning lama sebelum arsipkan 
+                // Ini mencegah data duplikat jika filter planning aktif suatu saat
+                // tidak diterapkan, dan menghemat storage jangka panjang.
+                // CATATAN: jangan hapus jika ada absensi yang masih merujuk ke jadwal lama.
+                // Cukup arsipkan planning, biarkan jadwal lama tetap ada tapi
+                // tidak akan muncul karena filter status = aktif.
+                // ─────────────────────────────────────────────────────────────────
+                
                 $planningLama->update(['status' => PlanningKerja::STATUS_DIPERBARUI]);
+                
                 $baru = PlanningKerja::create([
                     'id_perusahaan' => $idPerusahaan,
                     'periode_bulan' => $planningLama->periode_bulan,
@@ -507,11 +517,17 @@ class PlanningKerjaApiController extends Controller
                     'versi'         => $planningLama->versi + 1,
                     'dibuat_oleh'   => $admin->id_pengguna,
                 ]);
+                
                 JadwalKerja::insert(collect($request->jadwal)->map(fn($j) => [
-                    'id_planning' => $baru->id_planning, 'id_karyawan' => $j['id_karyawan'],
-                    'id_shift' => $j['id_shift'], 'tanggal_kerja' => $j['tanggal_kerja'],
-                    'is_hari_libur' => false, 'created_at' => now(), 'updated_at' => now(),
+                    'id_planning' => $baru->id_planning,
+                    'id_karyawan' => $j['id_karyawan'],
+                    'id_shift'    => $j['id_shift'],
+                    'tanggal_kerja' => $j['tanggal_kerja'],
+                    'is_hari_libur' => false,
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
                 ])->toArray());
+                
                 return $baru;
             });
 
