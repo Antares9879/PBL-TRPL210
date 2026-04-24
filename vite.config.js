@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/login.css',
                 'resources/css/super-admin.css',
                 'resources/css/admin.css',
+                'resources/css/departemen.css',
                 'resources/css/karyawan.css',
 
                 // ── JS global ───────────────────────────────────────────────
@@ -33,6 +34,11 @@ export default defineConfig({
                 'resources/js/admin-outsource/planning.js',
                 'resources/js/admin-outsource/validasi-absensi.js',
                 'resources/js/admin-outsource/kelola-izin.js',
+
+                // ── JS User Departemen ────────────────────────────────────────
+                'resources/js/user-departemen/dashboard.js',
+                'resources/js/user-departemen/validasi-lembur.js',
+                'resources/js/user-departemen/monitoring-absensi.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',

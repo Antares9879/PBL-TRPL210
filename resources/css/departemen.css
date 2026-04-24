@@ -1,0 +1,690 @@
+/**
+ * resources/css/departemen.css
+ * Layout + komponen — User Departemen | E-Outsourcing PBL-TRPL210
+ *
+ * Pola identik dengan admin.css dan super-admin.css (sidebar, topbar, panel, tabel).
+ * Warna accent User Departemen: teal/hijau (--teal-*).
+ * Komponen tambahan khusus role ini:
+ *   .dept-banner       → header identitas departemen User yang login
+ *   .stat-summary      → ringkasan statistik bulan ini
+ *   .lembur-badge-*    → status badge pengajuan lembur
+ */
+
+/* ── CSS Variables ──────────────────────────────────────────────────────── */
+:root {
+    /* Teal — warna utama User Departemen */
+    --teal-50:   #f0fdfa;
+    --teal-100:  #ccfbf1;
+    --teal-200:  #99f6e4;
+    --teal-300:  #5eead4;
+    --teal-400:  #2dd4bf;
+    --teal-500:  #14b8a6;
+    --teal-600:  #0d9488;
+    --teal-700:  #0f766e;
+    --teal-800:  #115e59;
+    --teal-900:  #134e4a;
+    --teal-950:  #042f2e;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIDEBAR ROLE BADGE — Teal untuk User Departemen
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sidebar-role-badge {
+    color: var(--teal-400);
+}
+
+.sidebar-role-dot {
+    background: var(--teal-500);
+    box-shadow: 0 0 6px var(--teal-500);
+    animation: pulse-teal 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-teal {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--teal-500); }
+    50%       { opacity: 0.6; box-shadow: 0 0 12px var(--teal-400); }
+}
+
+.nav-item--active {
+    background: rgba(20,184,166,0.15);
+    color: var(--teal-300);
+}
+
+.nav-item--active:hover {
+    background: rgba(20,184,166,0.2);
+    color: var(--teal-200);
+}
+
+.nav-badge {
+    background: var(--teal-500);
+}
+
+.sidebar-user-avatar {
+    background: linear-gradient(135deg, var(--teal-700), var(--teal-900));
+    color: var(--teal-200);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOPBAR AVATAR — Teal
+   ═══════════════════════════════════════════════════════════════════════════ */
+.topbar-avatar {
+    background: linear-gradient(135deg, var(--teal-600), var(--teal-800));
+    border-color: var(--teal-200);
+}
+
+.topbar-notif-dot {
+    background: var(--teal-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEPARTEMEN BANNER — Identitas departemen User yang login
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dept-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--teal-50) 0%, #f0fdf4 60%);
+    border: 1px solid var(--teal-100);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle pattern overlay */
+.dept-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(20,184,166,0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+
+.dept-banner-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background: var(--teal-100);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--teal-700);
+    border: 1px solid var(--teal-200);
+    position: relative;
+    z-index: 1;
+}
+
+.dept-banner-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.dept-banner-info {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.dept-banner-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.dept-banner-meta {
+    display: block;
+    font-size: 12px;
+    color: var(--teal-800);
+    margin-top: 2px;
+}
+
+.dept-banner-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--teal-500);
+    color: #ffffff;
+    white-space: nowrap;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STAT CARDS — Teal accent
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stat-card--teal::before {
+    background: linear-gradient(90deg, var(--teal-400), var(--teal-600));
+}
+
+.stat-card--teal .stat-card-icon {
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STAT SUMMARY — Ringkasan statistik bulan ini
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stat-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    transition: background var(--t-fast);
+}
+
+.stat-summary:hover {
+    background: #f1f5f9;
+}
+
+.stat-summary-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-summary-icon--teal {
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+.stat-summary-icon--blue {
+    background: var(--blue-50);
+    color: var(--blue-700);
+}
+
+.stat-summary-icon--rose {
+    background: var(--rose-50);
+    color: var(--rose-600);
+}
+
+.stat-summary-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.stat-summary-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-summary-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.stat-summary-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.stat-summary-unit {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    color: #94a3b8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUICK ACTIONS — Teal accent
+   ═══════════════════════════════════════════════════════════════════════════ */
+.quick-action-btn--teal {
+    background: var(--teal-50);
+    border-color: var(--teal-100);
+}
+
+.quick-action-btn--teal:hover {
+    background: var(--teal-100);
+}
+
+.quick-action-btn--teal .qa-icon {
+    background: var(--teal-100);
+    color: var(--teal-700);
+}
+
+.quick-action-btn--blue {
+    background: var(--blue-50);
+    border-color: var(--blue-100);
+}
+
+.quick-action-btn--blue:hover {
+    background: var(--blue-100);
+}
+
+.quick-action-btn--blue .qa-icon {
+    background: var(--blue-100);
+    color: var(--blue-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEMBUR BADGE — Status pengajuan lembur
+   ═══════════════════════════════════════════════════════════════════════════ */
+.lembur-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.lembur-badge--menunggu {
+    background: var(--amber-50);
+    color: var(--amber-800);
+    border: 1px solid var(--amber-100);
+}
+
+.lembur-badge--disetujui {
+    background: var(--eco-50);
+    color: var(--eco-700);
+    border: 1px solid var(--eco-100);
+}
+
+.lembur-badge--ditolak {
+    background: var(--rose-50);
+    color: var(--rose-600);
+    border: 1px solid var(--rose-100);
+}
+
+.lembur-badge--kadaluarsa {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOMBOL AKSI — Approve & Reject
+   ═══════════════════════════════════════════════════════════════════════════ */
+.btn-approve {
+    padding: 7px 14px;
+    border: none;
+    border-radius: 8px;
+    background: var(--eco-500);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background var(--t-fast), transform var(--t-fast);
+}
+
+.btn-approve:hover {
+    background: var(--eco-600);
+    transform: translateY(-1px);
+}
+
+.btn-reject {
+    padding: 7px 14px;
+    border: 1px solid var(--rose-200);
+    border-radius: 8px;
+    background: var(--rose-50);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rose-600);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+
+.btn-reject:hover {
+    background: var(--rose-100);
+    border-color: var(--rose-300);
+    transform: translateY(-1px);
+}
+
+.btn-detail {
+    padding: 7px 14px;
+    border: 1px solid var(--blue-200);
+    border-radius: 8px;
+    background: var(--blue-50);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue-600);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.btn-detail:hover {
+    background: var(--blue-100);
+    border-color: var(--blue-300);
+}
+
+.btn-secondary {
+    padding: 8px 16px;
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: background var(--t-fast), border-color var(--t-fast);
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-cancel {
+    padding: 9px 18px;
+    border: 1px solid var(--surface-border);
+    border-radius: 8px;
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: background var(--t-fast);
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOOLBAR — Filter & Search
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dept-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 16px 0;
+}
+
+.dept-search {
+    padding: 8px 14px;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color var(--t-fast);
+    min-width: 200px;
+}
+
+.dept-search:focus {
+    border-color: var(--teal-500);
+}
+
+.dept-select {
+    padding: 8px 14px;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--t-fast);
+}
+
+.dept-select:focus {
+    border-color: var(--teal-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODAL — Approve & Reject
+   ═══════════════════════════════════════════════════════════════════════════ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.modal-box {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.modal-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+
+.modal-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--surface-border);
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+.catatan-box {
+    width: 100%;
+    min-height: 100px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--surface-border);
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: #0f172a;
+    resize: vertical;
+    outline: none;
+    transition: border-color var(--t-fast);
+}
+
+.catatan-box:focus {
+    border-color: var(--teal-500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NOTIFIKASI ICON — Teal accent
+   ═══════════════════════════════════════════════════════════════════════════ */
+.notif-icon--lembur {
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAGINASI
+   ═══════════════════════════════════════════════════════════════════════════ */
+.paginasi-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--surface-border);
+}
+
+.paginasi-info {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.paginasi-buttons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.paginasi-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
+    background: #fff;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+}
+
+.paginasi-btn:hover:not(:disabled) {
+    background: var(--teal-50);
+    border-color: var(--teal-200);
+    color: var(--teal-700);
+}
+
+.paginasi-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.paginasi-btn--active {
+    background: var(--teal-500);
+    border-color: var(--teal-500);
+    color: #fff;
+}
+
+.paginasi-btn--active:hover {
+    background: var(--teal-600);
+    border-color: var(--teal-600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SKELETON LOADING
+   ═══════════════════════════════════════════════════════════════════════════ */
+.skel {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease infinite;
+}
+
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    .dept-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .dept-banner-tag {
+        align-self: flex-start;
+    }
+    
+    .dept-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .dept-search,
+    .dept-select {
+        width: 100%;
+    }
+    
+    .stat-summary {
+        flex-direction: column;
+        text-align: center;
+    }
+}
