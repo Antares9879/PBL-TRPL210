@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int         $id_lembur
  * @property int         $id_karyawan
  * @property int         $id_absensi
- * @property string      $tanggal_lembur
+ * @property \Carbon\Carbon|null      $tanggal_lembur
  * @property string      $jam_mulai_estimasi
  * @property string      $jam_selesai_estimasi
  * @property int         $menit_lembur_diajukan
@@ -22,8 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string      $alasan_lembur
  * @property string      $status            menunggu|disetujui|ditolak|kadaluarsa
  * @property string|null $catatan_penolakan
- * @property string      $batas_pengajuan
- * @property string      $diajukan_pada
+ * @property \Carbon\Carbon|null      $batas_pengajuan
+ * @property \Carbon\Carbon|null      $diajukan_pada
  * @property int|null    $diproses_oleh
  * @property string|null $waktu_proses
  */

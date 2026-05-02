@@ -8,6 +8,7 @@ use App\Models\PengajuanIzin;
 use App\Models\PengajuanLembur;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * RiwayatAbsensiApiController — F06
@@ -33,7 +34,9 @@ class RiwayatAbsensiApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        /** @var \App\Models\Pengguna|null $pengguna */
+        $pengguna = Auth::user();
+        $karyawan = $pengguna->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -71,7 +74,9 @@ class RiwayatAbsensiApiController extends Controller
      */
     public function ringkasan(Request $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        /** @var \App\Models\Pengguna|null $pengguna */
+        $pengguna = Auth::user();
+        $karyawan = $pengguna->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -130,7 +135,7 @@ class RiwayatAbsensiApiController extends Controller
     private function formatAbsensiDetail(Absensi $a): array
     {
         // Ambil lembur resmi yang disetujui untuk absensi ini (jika ada)
-        $lembur = $a->pengajuanLembur
+        $lembur = $a->pengajuan_lembur_safe
             ->where('status', PengajuanLembur::STATUS_DISETUJUI)
             ->first();
 

@@ -23,18 +23,18 @@ use Carbon\Carbon;
  * @property int         $id_izin
  * @property int         $id_karyawan
  * @property int         $id_jenis_izin
- * @property string      $tanggal_izin           tanggal mulai
- * @property string|null $tanggal_selesai_izin   tanggal akhir; null = 1 hari
+ * @property \Carbon\Carbon|null      $tanggal_izin           tanggal mulai
+ * @property \Carbon\Carbon|null $tanggal_selesai_izin   tanggal akhir; null = 1 hari
  * @property string|null $keterangan
  * @property string      $status              menunggu|disetujui|ditolak
  * @property string|null $catatan_penolakan
  * @property string      $status_dokumen      belum_upload|sudah_upload|lengkap|tidak_lengkap
  * @property string|null $catatan_dokumen
- * @property string      $diajukan_pada
+ * @property \Carbon\Carbon|null      $diajukan_pada
  * @property int|null    $divalidasi_admin
- * @property string|null $waktu_validasi_admin
+ * @property \Carbon\Carbon|null $waktu_validasi_admin
  * @property int|null    $diverifikasi_hr
- * @property string|null $waktu_verifikasi_hr
+ * @property \Carbon\Carbon|null $waktu_verifikasi_hr
  */
 class PengajuanIzin extends Model
 {

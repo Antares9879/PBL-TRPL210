@@ -9,7 +9,7 @@ use App\Models\PengajuanLembur;
 use App\Services\LemburService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 /**
  * LemburApiController — F03
  *
@@ -38,7 +38,7 @@ class LemburApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -77,7 +77,7 @@ class LemburApiController extends Controller
      */
     public function store(StoreLemburRequest $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -155,7 +155,7 @@ class LemburApiController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         $lembur = PengajuanLembur::where('id_lembur', $id)
             ->where('id_karyawan', $karyawan?->id_karyawan)

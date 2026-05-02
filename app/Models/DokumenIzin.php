@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $path_file
  * @property string $tipe_file
  * @property int    $ukuran_kb
- * @property int    $diunggah_oleh
- * @property string $diunggah_pada
+ * @property \Carbon\Carbon|null    $diunggah_oleh
+ * @property \Carbon\Carbon|null $diunggah_pada
  */
 class DokumenIzin extends Model
 {
