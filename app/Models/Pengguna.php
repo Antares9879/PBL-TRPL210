@@ -18,15 +18,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *   - role user_departemen → relasi hasOne(UserDepartemenProfile)
  *   - role hr, super_admin → tidak ada extension table
  *
+ * @mixin \Illuminate\Database\Eloquent\Builder
  * @property int         $id_pengguna
  * @property string      $nama_lengkap
  * @property string      $email
  * @property string      $password_hash
  * @property string      $role           super_admin|hr|user_departemen|admin_outsource|karyawan
  * @property string      $status         aktif|nonaktif
- * @property string|null $last_login
- * @property string      $created_at
- * @property string      $updated_at
+ * @property \Carbon\Carbon|null $last_login
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
  */
 class Pengguna extends Authenticatable
 {

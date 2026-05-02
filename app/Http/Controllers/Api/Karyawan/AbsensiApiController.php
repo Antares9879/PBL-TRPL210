@@ -11,6 +11,7 @@ use App\Services\AbsensiService;
 use App\Services\GpsValidationService;
 use App\Services\NotifikasiService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * AbsensiApiController — F01
@@ -43,9 +44,7 @@ class AbsensiApiController extends Controller
 
     public function checkIn(CheckInRequest $request): JsonResponse
     {
-        /** @var \App\Models\Pengguna $pengguna */
-        $pengguna = auth()->user();
-        $karyawan = $pengguna->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan || $karyawan->status === 'nonaktif') {
             return response()->json([
@@ -125,9 +124,7 @@ class AbsensiApiController extends Controller
 
     public function checkOut(CheckOutRequest $request): JsonResponse
     {
-        /** @var \App\Models\Pengguna $pengguna */
-        $pengguna = auth()->user();
-        $karyawan = $pengguna->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan || $karyawan->status === 'nonaktif') {
             return response()->json([

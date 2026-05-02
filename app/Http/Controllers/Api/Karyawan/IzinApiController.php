@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * IzinApiController — F04, F05
@@ -46,7 +47,7 @@ class IzinApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -88,8 +89,8 @@ class IzinApiController extends Controller
      */
     public function store(StoreIzinRequest $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
-        $pengguna = auth()->user();
+        $karyawan = Auth::user()->karyawan;
+        $pengguna = Auth::user();
 
         if (! $karyawan) {
             return response()->json([
@@ -172,7 +173,7 @@ class IzinApiController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         $izin = PengajuanIzin::with([
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
@@ -204,8 +205,8 @@ class IzinApiController extends Controller
      */
     public function uploadDokumen(UploadDokumenRequest $request, int $id): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
-        $pengguna = auth()->user();
+        $karyawan = Auth::user()->karyawan;
+        $pengguna = Auth::user();
 
         $izin = PengajuanIzin::where('id_izin', $id)
             ->where('id_karyawan', $karyawan?->id_karyawan)
@@ -265,7 +266,7 @@ class IzinApiController extends Controller
      */
     public function downloadDokumen(int $id, int $docId): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         $izin = PengajuanIzin::where('id_izin', $id)
             ->where('id_karyawan', $karyawan?->id_karyawan)

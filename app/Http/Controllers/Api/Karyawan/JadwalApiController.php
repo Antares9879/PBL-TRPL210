@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\JadwalKerja;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * JadwalApiController — F02
@@ -25,7 +26,7 @@ class JadwalApiController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         if (! $karyawan) {
             return response()->json([
@@ -75,7 +76,7 @@ class JadwalApiController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $karyawan = auth()->user()->karyawan;
+        $karyawan = Auth::user()->karyawan;
 
         $jadwal = JadwalKerja::with([
             'shift:id_shift,nama_shift,jam_masuk,jam_pulang,durasi_normal_menit',

@@ -5,22 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Model Absensi
  *
  * Menyimpan data check-in dan check-out karyawan harian
  * beserta kalkulasi menit kerja normal, telat, pulang cepat, dan kelebihan.
- *
+ * Status kehadiran: hadir, izin, alpa, pending
+ * Status validasi: menunggu, disetujui, ditolak
  * @property int         $id_absensi
  * @property int         $id_karyawan
  * @property int         $id_jadwal
- * @property string      $tanggal_absensi
- * @property string|null $waktu_check_in
+ * @property \Carbon\Carbon|null $tanggal_absensi
+ * @property \Carbon\Carbon|null $waktu_check_in
  * @property float|null  $latitude_check_in
  * @property float|null  $longitude_check_in
  * @property bool|null   $is_lokasi_valid_in
- * @property string|null $waktu_check_out
+ * @property \Carbon\Carbon|null $waktu_check_out
  * @property float|null  $latitude_check_out
  * @property float|null  $longitude_check_out
  * @property bool|null   $is_lokasi_valid_out
@@ -32,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string      $status_validasi    menunggu|disetujui|ditolak
  * @property string|null $catatan_penolakan
  * @property int|null    $divalidasi_oleh
- * @property string|null $waktu_validasi
+ * @property \Carbon\Carbon|null $waktu_validasi
  */
 class Absensi extends Model
 {
@@ -108,14 +110,25 @@ class Absensi extends Model
         return $this->hasMany(PengajuanLembur::class, 'id_absensi', 'id_absensi');
     }
 
-    // ── Scopes ────────────────────────────────────────────────────────────────
+    /**
+     * Mengembalikan koleksi pengajuanLembur yang aman (tidak pernah null).
+     * Diakses via $absensi->pengajuan_lembur_safe
+     */
+    public function getPengajuanLemburSafeAttribute(): \Illuminate\Support\Collection
+    {
+        return $this->relationLoaded('pengajuanLembur')
+            ? $this->getRelation('pengajuanLembur')
+            : collect();
+    }
 
-    public function scopeMenungguValidasi($query)
+    // ── Scopes ────────────────────────────────────────────────────────────────
+    
+    public function scopeMenungguValidasi(Builder $query): Builder
     {
         return $query->where('status_validasi', self::VALIDASI_MENUNGGU);
     }
 
-    public function scopeHariIni($query)
+    public function scopeHariIni(Builder $query): Builder
     {
         return $query->whereDate('tanggal_absensi', today());
     }
