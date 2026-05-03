@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;    
 
 /**
  * KonfigurasiAreaApiController — F19
@@ -60,13 +61,13 @@ class KonfigurasiAreaApiController extends Controller
                     'longitude_pusat' => $request->longitude_pusat,
                     'radius_meter'    => $request->radius_meter,
                     'is_aktif'        => $isAktif,
-                    'diubah_oleh'     => auth()->id(),
+                    'diubah_oleh'     => Auth::id(),
                 ]);
             });
 
             Log::info('Konfigurasi area baru dibuat', [
                 'id_konfigurasi' => $area->id_konfigurasi,
-                'dibuat_oleh'    => auth()->id(),
+                'dibuat_oleh'    => Auth::id(),
             ]);
 
             $area->load('diubahOleh:id_pengguna,nama_lengkap');
@@ -129,7 +130,7 @@ class KonfigurasiAreaApiController extends Controller
                     'longitude_pusat' => $request->longitude_pusat,
                     'radius_meter'    => $request->radius_meter,
                     'is_aktif'        => $isAktif,
-                    'diubah_oleh'     => auth()->id(),
+                    'diubah_oleh'     => Auth::id(),
                 ]);
             });
 

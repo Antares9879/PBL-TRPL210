@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * AkunApiController — F17
@@ -117,7 +118,7 @@ class AkunApiController extends Controller
             Log::info('Akun baru dibuat', [
                 'id_pengguna'  => $pengguna->id_pengguna,
                 'role'         => $pengguna->role,
-                'dibuat_oleh'  => auth()->id(),
+                'dibuat_oleh'  => Auth::id(),
             ]);
 
             return response()->json([
@@ -234,7 +235,7 @@ class AkunApiController extends Controller
         }
 
         // Guard: Super Admin tidak bisa hapus akunnya sendiri
-        if ($pengguna->id_pengguna === auth()->id()) {
+        if ($pengguna->id_pengguna === Auth::id()) {
             return response()->json([
                 'status'  => false,
                 'message' => 'Anda tidak dapat menghapus akun Anda sendiri.',
@@ -278,7 +279,7 @@ class AkunApiController extends Controller
 
         Log::info('Password di-reset', [
             'id_pengguna' => $pengguna->id_pengguna,
-            'di_reset_oleh' => auth()->id(),
+            'di_reset_oleh' => Auth::id(),
         ]);
 
         return response()->json([

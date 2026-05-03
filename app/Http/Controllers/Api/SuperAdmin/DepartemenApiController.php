@@ -9,6 +9,7 @@ use App\Models\Departemen;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * DepartemenApiController — F18
@@ -60,7 +61,7 @@ class DepartemenApiController extends Controller
 
         Log::info('Departemen baru dibuat', [
             'id_departemen' => $departemen->id_departemen,
-            'dibuat_oleh'   => auth()->id(),
+            'dibuat_oleh'   => Auth::id(),
         ]);
 
         return response()->json([

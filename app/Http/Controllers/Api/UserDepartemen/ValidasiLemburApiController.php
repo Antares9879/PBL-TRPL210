@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserDepartemen\ValidasiLemburRequest;
 use App\Models\AuditLog;
 use App\Models\Karyawan;
+use App\Models\Pengguna;
 use App\Models\PengajuanLembur;
 use App\Services\AuditLogService;
 use App\Services\LemburService;
 use App\Services\NotifikasiService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * ValidasiLemburApiController — F12
@@ -149,7 +152,7 @@ class ValidasiLemburApiController extends Controller
      */
     public function proses(ValidasiLemburRequest $request, int $id): JsonResponse
     {
-        $userDepartemen = auth()->user();
+        $userDepartemen = $this->authenticatedPengguna();
         $lembur         = $this->findLembur($id);
 
         if (! $lembur) {
@@ -314,7 +317,18 @@ class ValidasiLemburApiController extends Controller
      */
     private function getIdDepartemen(): int
     {
-        return auth()->user()->userDepartemenProfile->id_departemen;
+        return $this->authenticatedPengguna()->userDepartemenProfile->id_departemen;
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 
     /**

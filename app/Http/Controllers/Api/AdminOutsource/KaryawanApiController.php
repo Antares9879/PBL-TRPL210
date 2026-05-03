@@ -10,12 +10,14 @@ use App\Models\Karyawan;
 use App\Models\Pengguna;
 use App\Models\AuditLog;
 use App\Services\AuditLogService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * KaryawanApiController — F07
@@ -96,7 +98,7 @@ class KaryawanApiController extends Controller
      */
     public function store(StoreKaryawanRequest $request): JsonResponse
     {
-        $admin        = auth()->user();
+        $admin        = $this->authenticatedPengguna();
         $idPerusahaan = $this->getIdPerusahaan();
 
         try {
@@ -231,7 +233,7 @@ class KaryawanApiController extends Controller
             ]);
 
             AuditLogService::catat(
-                pengguna:    auth()->user(),
+                pengguna:    $this->authenticatedPengguna(),
                 jenis:       AuditLog::JENIS_AKUN,
                 idReferensi: $data->id_karyawan,
                 aksi:        AuditLog::AKSI_UPDATE,
@@ -293,7 +295,7 @@ class KaryawanApiController extends Controller
         });
 
         AuditLogService::catat(
-            pengguna:    auth()->user(),
+            pengguna:    $this->authenticatedPengguna(),
             jenis:       AuditLog::JENIS_AKUN,
             idReferensi: $data->id_karyawan,
             aksi:        AuditLog::AKSI_DEACTIVATE,
@@ -341,7 +343,7 @@ class KaryawanApiController extends Controller
         });
 
         AuditLogService::catat(
-            pengguna:    auth()->user(),
+            pengguna:    $this->authenticatedPengguna(),
             jenis:       AuditLog::JENIS_AKUN,
             idReferensi: $data->id_karyawan,
             aksi:        AuditLog::AKSI_UPDATE,
@@ -377,7 +379,7 @@ class KaryawanApiController extends Controller
         ]);
 
         AuditLogService::catat(
-            pengguna:    auth()->user(),
+            pengguna:    $this->authenticatedPengguna(),
             jenis:       AuditLog::JENIS_AKUN,
             idReferensi: $data->id_karyawan,
             aksi:        AuditLog::AKSI_UPDATE,
@@ -386,7 +388,7 @@ class KaryawanApiController extends Controller
 
         Log::info('Password karyawan di-reset', [
             'id_karyawan' => $data->id_karyawan,
-            'di_reset_oleh' => auth()->id(),
+            'di_reset_oleh' => $this->authenticatedPengguna()->id_pengguna,
         ]);
 
         return response()->json([
@@ -404,7 +406,18 @@ class KaryawanApiController extends Controller
      */
     private function getIdPerusahaan(): int
     {
-        return auth()->user()->adminOutsourceProfile->id_perusahaan;
+        return $this->authenticatedPengguna()->adminOutsourceProfile->id_perusahaan;
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 
     /**

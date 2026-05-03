@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\AdminOutsource;
 
 use App\Http\Controllers\Controller;
 use App\Models\DokumenIzin;
+use App\Models\Pengguna;
 use App\Models\PengajuanIzin;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * DokumenIzinAdminController
@@ -27,7 +30,18 @@ class DokumenIzinAdminController extends Controller
      */
     private function getIdPerusahaan(): int
     {
-        return auth()->user()->adminOutsourceProfile->id_perusahaan;
+        return $this->authenticatedPengguna()->adminOutsourceProfile->id_perusahaan;
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 
     /**
