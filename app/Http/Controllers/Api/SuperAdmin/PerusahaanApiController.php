@@ -9,6 +9,7 @@ use App\Models\PerusahaanOutsource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * PerusahaanApiController — F18
@@ -58,7 +59,7 @@ class PerusahaanApiController extends Controller
 
         Log::info('Perusahaan baru dibuat', [
             'id_perusahaan' => $perusahaan->id_perusahaan,
-            'dibuat_oleh'   => auth()->id(),
+            'dibuat_oleh'   => Auth::id(),
         ]);
 
         return response()->json([
