@@ -126,7 +126,7 @@ function renderAbsensi(rows) {
 // ════════════════════════════════════════════════════════════════════════
 async function loadDaftarKaryawan() {
     try {
-        const res  = await apiFetch('/api/departemen/dashboard/daftar-karyawan');
+        const res  = await apiFetch('/api/departemen/dashboard/karyawan');
         const json = await res.json();
         if (!json.status) return;
 

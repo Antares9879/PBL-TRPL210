@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\UserDepartemen;
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\Karyawan;
+use App\Models\Pengguna;
 use App\Models\PengajuanLembur;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -124,6 +126,7 @@ class DashboardApiController extends Controller
     public function absensi(Request $request): JsonResponse
     {
         $idDepartemen = $this->getIdDepartemen();
+        $perPage      = max(1, min((int) $request->integer('per_page', (int) $request->integer('limit', 20)), 100));
 
         $query = Absensi::with([
             'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,id_departemen,id_perusahaan',
@@ -168,7 +171,7 @@ class DashboardApiController extends Controller
         $data = $query
             ->orderByDesc('tanggal_absensi')
             ->orderBy('status_kehadiran')
-            ->paginate(20);
+            ->paginate($perPage);
 
         $data->getCollection()->transform(fn ($a) => $this->formatAbsensi($a));
 
@@ -257,7 +260,18 @@ class DashboardApiController extends Controller
      */
     private function getIdDepartemen(): int
     {
-        return Auth::id() ? Auth::user()->id_departemen : 0;
+        return $this->authenticatedPengguna()->userDepartemenProfile->id_departemen;
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 
     /**
