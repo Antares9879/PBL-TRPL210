@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $posisi
  * @property int    $id_perusahaan
  * @property int    $id_departemen
- * @property string $tanggal_bergabung
+ * @property \Carbon\Carbon $tanggal_bergabung
  * @property string $status
  * @property int    $created_by
  */

@@ -7,13 +7,16 @@ use App\Models\Karyawan;
 use App\Models\PlanningKerja;
 use App\Models\JadwalKerja;
 use App\Models\Shift;
+use App\Models\Pengguna;
 use App\Models\AuditLog;
 use App\Services\AuditLogService;
 use App\Services\NotifikasiService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -45,7 +48,7 @@ class PlanningKerjaApiController extends Controller
 {
     private function getIdPerusahaan(): int
     {
-        return auth()->user()->adminOutsourceProfile->id_perusahaan;
+        return $this->authenticatedPengguna()->adminOutsourceProfile->id_perusahaan;
     }
 
     // ── INDEX ─────────────────────────────────────────────────────────────────
@@ -423,7 +426,7 @@ class PlanningKerjaApiController extends Controller
         ]);
 
         $idPerusahaan = $this->getIdPerusahaan();
-        $admin        = auth()->user();
+        $admin        = $this->authenticatedPengguna();
 
         $existing = PlanningKerja::where('id_perusahaan', $idPerusahaan)
             ->where('periode_bulan', $request->periode_bulan)
@@ -494,7 +497,7 @@ class PlanningKerjaApiController extends Controller
         if (!$planningLama) return $this->notFound();
 
         $idPerusahaan = $this->getIdPerusahaan();
-        $admin        = auth()->user();
+        $admin        = $this->authenticatedPengguna();
 
         try {
             $planningBaru = DB::transaction(function () use ($request, $planningLama, $idPerusahaan, $admin) {
@@ -583,7 +586,7 @@ class PlanningKerjaApiController extends Controller
         }
 
         $karyawan = Karyawan::find($request->id_karyawan);
-        AuditLogService::catat(pengguna: auth()->user(), jenis: AuditLog::JENIS_PLANNING, idReferensi: $jadwal->id_jadwal, aksi: AuditLog::AKSI_UPDATE, catatan: "{$aksi} via grid: {$karyawan->nama_lengkap} — {$request->tanggal_kerja}");
+        AuditLogService::catat(pengguna: $this->authenticatedPengguna(), jenis: AuditLog::JENIS_PLANNING, idReferensi: $jadwal->id_jadwal, aksi: AuditLog::AKSI_UPDATE, catatan: "{$aksi} via grid: {$karyawan->nama_lengkap} — {$request->tanggal_kerja}");
 
         $jadwal->load('shift:id_shift,nama_shift,jam_masuk,jam_pulang');
         return response()->json([
@@ -603,6 +606,17 @@ class PlanningKerjaApiController extends Controller
     private function findPlanning(int $id): ?PlanningKerja
     {
         return PlanningKerja::where('id_planning', $id)->where('id_perusahaan', $this->getIdPerusahaan())->first();
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 
     private function getNamaBulan(int $b): string

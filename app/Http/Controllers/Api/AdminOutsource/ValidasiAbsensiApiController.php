@@ -7,19 +7,22 @@ use App\Http\Requests\AdminOutsource\ValidasiAbsensiRequest;
 use App\Http\Requests\AdminOutsource\ValidasiIzinRequest;
 use App\Models\Absensi;
 use App\Models\JadwalKerja;
+use App\Models\Pengguna;
 use App\Models\PengajuanIzin;
 use App\Models\AuditLog;
 use App\Services\AuditLogService;
 use App\Services\NotifikasiService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ValidasiAbsensiApiController extends Controller
 {
     private function getIdPerusahaan(): int
     {
-        return auth()->user()->adminOutsourceProfile->id_perusahaan;
+        return $this->authenticatedPengguna()->adminOutsourceProfile->id_perusahaan;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -88,7 +91,7 @@ class ValidasiAbsensiApiController extends Controller
 
     public function validasi(ValidasiAbsensiRequest $request, int $id): JsonResponse
     {
-        $admin = auth()->user();
+        $admin = $this->authenticatedPengguna();
 
         $absensi = Absensi::with([
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
@@ -233,7 +236,7 @@ class ValidasiAbsensiApiController extends Controller
 
     public function validasiIzin(ValidasiIzinRequest $request, int $id): JsonResponse
     {
-        $admin = auth()->user();
+        $admin = $this->authenticatedPengguna();
 
         $izin = PengajuanIzin::with([
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
@@ -510,5 +513,16 @@ class ValidasiAbsensiApiController extends Controller
         }
 
         return $data;
+    }
+
+    private function authenticatedPengguna(): Pengguna
+    {
+        $user = Auth::user();
+
+        if (! $user instanceof Pengguna) {
+            throw new AuthenticationException('Pengguna tidak terautentikasi.');
+        }
+
+        return $user;
     }
 }
