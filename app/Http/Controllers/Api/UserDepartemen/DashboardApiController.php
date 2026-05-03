@@ -8,6 +8,7 @@ use App\Models\Karyawan;
 use App\Models\PengajuanLembur;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * DashboardApiController — User Departemen
@@ -256,7 +257,7 @@ class DashboardApiController extends Controller
      */
     private function getIdDepartemen(): int
     {
-        return auth()->user()->userDepartemenProfile->id_departemen;
+        return Auth::id() ? Auth::user()->id_departemen : 0;
     }
 
     /**
