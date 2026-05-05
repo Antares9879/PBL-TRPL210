@@ -16,7 +16,7 @@
 
     @stack('styles')
 </head>
-<body class="app-body">
+<body class="app-body" data-session-monitor data-session-monitor-interval="30000">
 
     <aside class="sidebar" id="sidebar">
 
@@ -103,7 +103,7 @@
 
     </div>
 
-    @vite(['resources/js/app.js'])
+    @vite(['resources/js/app.js', 'resources/js/session-monitor.js'])
     @stack('scripts')
 
     <script>

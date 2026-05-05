@@ -33,7 +33,7 @@
     {{-- Injeksi CSS tambahan dari child view --}}
     @stack('styles')
 </head>
-<body class="karyawan-body">
+<body class="karyawan-body" data-session-monitor data-session-monitor-interval="30000">
 
 {{-- ══════════════════════════════════════════════════════════════════════════
      SIDEBAR — Desktop ≥ 1024px
@@ -278,8 +278,8 @@
 })();
 </script>
 
-{{-- JS global (app.js), lalu JS spesifik halaman --}}
-@vite(['resources/js/app.js'])
+{{-- JS global (app.js), session monitor, lalu JS spesifik halaman --}}
+@vite(['resources/js/app.js', 'resources/js/session-monitor.js'])
 @stack('scripts')
 
 </body>

@@ -257,5 +257,5 @@
         login.js sudah didaftarkan sebagai entry point di vite.config.js.
         @vite() akan otomatis inject script tag yang benar sesuai environment.
     --}}
-    @vite(['resources/js/auth/login.js'])
+    @vite(['resources/js/auth/login.js', 'resources/js/login-session-check.js'])
 @endpush
