@@ -31,6 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(headers: \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR);
 
     })
+    ->withSchedule(function ($schedule) {
+        // ── Session Garbage Collection ────────────────────────────────────────
+        // Cleanup expired sessions dari database setiap hari jam 2 pagi
+        // Menghapus session yang sudah expired (last_activity > SESSION_LIFETIME)
+        $schedule->command('session:gc')->daily()->at('02:00');
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         // Exception handling dipusatkan di app/Exceptions/Handler.php
     })
