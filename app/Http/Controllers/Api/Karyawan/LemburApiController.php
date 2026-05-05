@@ -110,6 +110,18 @@ class LemburApiController extends Controller
             ], 422);
         }
 
+        // Cek minimum threshold untuk pengajuan lembur
+        if ($absensi->menit_kelebihan < LemburService::MINIMUM_MENIT_LEMBUR) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Kelebihan waktu kerja minimal ' . LemburService::MINIMUM_MENIT_LEMBUR . ' menit untuk dapat diajukan sebagai lembur.',
+                'data'    => [
+                    'menit_kelebihan'  => $absensi->menit_kelebihan,
+                    'minimum_required' => LemburService::MINIMUM_MENIT_LEMBUR,
+                ],
+            ], 422);
+        }
+
         // Cegah duplikasi: pengajuan aktif untuk tanggal yang sama
         $pengajuanAktif = PengajuanLembur::where('id_karyawan', $karyawan->id_karyawan)
             ->whereDate('tanggal_lembur', $request->tanggal_lembur)

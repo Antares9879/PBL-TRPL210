@@ -31,6 +31,10 @@
                 setelah tanggal lembur. Pengajuan yang melewati batas waktu akan otomatis
                 berstatus <em>kadaluarsa</em>. Persetujuan dilakukan oleh User Departemen.
             </p>
+            <p style="font-size:12px;line-height:1.6;margin-top:6px;padding-top:6px;border-top:1px solid rgba(59,130,246,0.2);">
+                <strong>Minimum kelebihan waktu:</strong> 60 menit (1 jam) untuk dapat mengajukan lembur.
+                Kelebihan di bawah 60 menit tetap tercatat untuk transparansi, namun tidak dapat diajukan.
+            </p>
         </div>
     </div>
 

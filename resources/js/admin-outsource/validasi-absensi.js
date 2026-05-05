@@ -173,12 +173,12 @@ function injectToolbarValidasi() {
         <input id="search-karyawan-absensi" class="ao-search" type="text"
             placeholder="Cari nama karyawan..." style="width:200px;">
         <input id="filter-tanggal" type="date" class="ao-select"
-            style="padding:7px 12px;" value="${new Date().toISOString().slice(0,10)}">
+            style="padding:7px 12px;" placeholder="Pilih tanggal...">
         <select id="filter-validasi-status" class="ao-select">
+            <option value="">Semua Status</option>
             <option value="menunggu" selected>Menunggu Validasi</option>
             <option value="disetujui">Sudah Disetujui</option>
             <option value="ditolak">Ditolak</option>
-            <option value="">Semua Status</option>
         </select>
         <button id="btn-reset-filter-absensi" style="padding:7px 12px;border:1px solid #e2e8f0;
             border-radius:8px;background:#fff;font-size:12px;color:#64748b;cursor:pointer;">
@@ -214,8 +214,8 @@ function injectToolbarValidasi() {
         loadAbsensi(1);
     });
 
-    // Set default tanggal = hari ini
-    filterTanggal = new Date().toISOString().slice(0, 10);
+    // TIDAK set default tanggal - biarkan kosong untuk menampilkan semua data
+    // filterTanggal = ''; // Sudah di-init di atas
 
     // Delegasi tabel
     document.querySelector('.dash-panel--full')?.addEventListener('click', async e => {

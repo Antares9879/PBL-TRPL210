@@ -394,6 +394,12 @@ body {
     color: var(--eco-800);
 }
 
+.login-alert.login-alert--warning {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
 .login-alert svg {
     width: 16px;
     height: 16px;

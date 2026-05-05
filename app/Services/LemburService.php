@@ -17,9 +17,16 @@ use Carbon\Carbon;
  *   - Pengajuan melewati H+1 ditolak otomatis oleh sistem (status: kadaluarsa).
  *   - Menit lembur resmi baru dihitung setelah disetujui User Departemen.
  *   - Menit lembur yang dihitung = berdasarkan check-out aktual vs jam pulang jadwal.
+ *   - Minimum kelebihan waktu untuk dapat mengajukan lembur: 60 menit.
  */
 class LemburService
 {
+    /**
+     * Minimum menit kelebihan waktu kerja untuk dapat mengajukan lembur.
+     * Kelebihan di bawah threshold ini tetap dicatat untuk transparansi,
+     * namun tidak dapat diajukan sebagai lembur.
+     */
+    public const MINIMUM_MENIT_LEMBUR = 60;
     /**
      * Validasi apakah pengajuan lembur masih dalam batas waktu H+1.
      *
