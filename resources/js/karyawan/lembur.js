@@ -174,12 +174,30 @@ function renderAbsensiInfo(absensi) {
         return;
     }
 
+    const kelebihan = absensi.menit_kelebihan ?? 0;
+    const MINIMUM_MENIT = 60;
+
+    // Tampilkan info absensi
     infoEl.style.display = '';
     if (checkin)  checkin.textContent  = formatTime(absensi.waktu_check_in);
     if (checkout) checkout.textContent = formatTime(absensi.waktu_check_out);
     if (menit) {
-        const kelebihan = absensi.menit_kelebihan ?? 0;
         menit.textContent = kelebihan > 0 ? formatMinutes(kelebihan) : '0 mnt (tidak ada kelebihan)';
+    }
+
+    // Tampilkan warning jika kelebihan < 60 menit
+    if (kelebihan > 0 && kelebihan < MINIMUM_MENIT) {
+        showFormAlert(
+            `Kelebihan waktu kerja Anda adalah ${kelebihan} menit. Minimum ${MINIMUM_MENIT} menit (1 jam) diperlukan untuk dapat mengajukan lembur. Kelebihan waktu tetap tercatat untuk transparansi.`,
+            'warning'
+        );
+    } else if (kelebihan === 0) {
+        showFormAlert(
+            'Tidak ada kelebihan waktu kerja yang tercatat pada tanggal tersebut.',
+            'warning'
+        );
+    } else {
+        hideFormAlert();
     }
 }
 
