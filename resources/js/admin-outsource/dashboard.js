@@ -8,7 +8,7 @@
  *   GET /api/admin/notifikasi?limit=6
  */
 
-import { apiFetch, esc, fmtWaktu, badgeKehadiran, toast } from './_utils.js';
+import { apiFetch, esc, fmtWaktu, badgeKehadiran } from './_utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 

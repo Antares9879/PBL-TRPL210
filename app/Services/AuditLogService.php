@@ -86,4 +86,59 @@ class AuditLogService
     ): AuditLog {
         return static::catat($pengguna, $jenis, $idReferensi, AuditLog::AKSI_REJECT, $catatan, $sebelum, $sesudah);
     }
+
+    /**
+     * Catat create.
+     */
+    public static function create(
+        \App\Models\Pengguna $pengguna,
+        string $jenis,
+        int $idReferensi,
+        ?string $catatan = null,
+        ?array $sesudah  = null,
+    ): AuditLog {
+        return static::catat($pengguna, $jenis, $idReferensi, AuditLog::AKSI_CREATE, $catatan, null, $sesudah);
+    }
+
+    /**
+     * Catat update.
+     */
+    public static function update(
+        \App\Models\Pengguna $pengguna,
+        string $jenis,
+        int $idReferensi,
+        ?string $catatan = null,
+        ?array $sebelum  = null,
+        ?array $sesudah  = null,
+    ): AuditLog {
+        return static::catat($pengguna, $jenis, $idReferensi, AuditLog::AKSI_UPDATE, $catatan, $sebelum, $sesudah);
+    }
+
+    /**
+     * Catat activate.
+     */
+    public static function activate(
+        \App\Models\Pengguna $pengguna,
+        string $jenis,
+        int $idReferensi,
+        ?string $catatan = null,
+        ?array $sebelum  = null,
+        ?array $sesudah  = null,
+    ): AuditLog {
+        return static::catat($pengguna, $jenis, $idReferensi, AuditLog::AKSI_ACTIVATE, $catatan, $sebelum, $sesudah);
+    }
+
+    /**
+     * Catat deactivate.
+     */
+    public static function deactivate(
+        \App\Models\Pengguna $pengguna,
+        string $jenis,
+        int $idReferensi,
+        ?string $catatan = null,
+        ?array $sebelum  = null,
+        ?array $sesudah  = null,
+    ): AuditLog {
+        return static::catat($pengguna, $jenis, $idReferensi, AuditLog::AKSI_DEACTIVATE, $catatan, $sebelum, $sesudah);
+    }
 }
