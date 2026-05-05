@@ -54,6 +54,14 @@ class PlanningKerja extends Model
     }
 
     /**
+     * Alias untuk relasi jadwal (untuk konsistensi dengan controller)
+     */
+    public function jadwalKerja(): HasMany
+    {
+        return $this->jadwal();
+    }
+
+    /**
      * Label periode yang mudah dibaca (contoh: "Maret 2025").
      */
     public function getPeriodeLabelAttribute(): string

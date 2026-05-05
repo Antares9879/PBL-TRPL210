@@ -99,7 +99,18 @@ class AuthApiController extends Controller
         // ── 7. Bersihkan rate limit counter ──────────────────────────────────
         RateLimiter::clear($throttleKey);
 
-        // ── 8. Log aksi login (opsional, non-blocking) ───────────────────────
+        // ── 8. Log aksi login ke audit log ────────────────────────────────────
+        \App\Services\AuditLogService::catat(
+            pengguna: $pengguna,
+            jenis: \App\Models\AuditLog::JENIS_AUTH,
+            idReferensi: $pengguna->id_pengguna,
+            aksi: \App\Models\AuditLog::AKSI_LOGIN,
+            catatan: 'Login berhasil dari ' . $request->ip(),
+            sebelum: null,
+            sesudah: null,
+            ipAddress: $request->ip()
+        );
+
         Log::info('Login berhasil', [
             'id_pengguna' => $pengguna->id_pengguna,
             'role'        => $pengguna->role,
@@ -126,6 +137,23 @@ class AuthApiController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        /** @var Pengguna|null $pengguna */
+        $pengguna = Auth::user();
+
+        // Log audit sebelum logout
+        if ($pengguna) {
+            \App\Services\AuditLogService::catat(
+                pengguna: $pengguna,
+                jenis: \App\Models\AuditLog::JENIS_AUTH,
+                idReferensi: $pengguna->id_pengguna,
+                aksi: \App\Models\AuditLog::AKSI_LOGOUT,
+                catatan: 'Logout dari sistem',
+                sebelum: null,
+                sesudah: null,
+                ipAddress: $request->ip()
+            );
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -44,7 +44,17 @@ class AbsensiApiController extends Controller
 
     public function checkIn(CheckInRequest $request): JsonResponse
     {
-        $karyawan = Auth::user()->karyawan;
+        $pengguna = Auth::user();
+        
+        if (!$pengguna instanceof \App\Models\Pengguna) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User tidak terautentikasi dengan benar.',
+                'data'    => null,
+            ], 401);
+        }
+        
+        $karyawan = $pengguna->karyawan;
 
         if (! $karyawan || $karyawan->status === 'nonaktif') {
             return response()->json([
@@ -103,6 +113,20 @@ class AbsensiApiController extends Controller
             );
         }
 
+        // 4. Catat audit log untuk check-in
+        \App\Services\AuditLogService::catat(
+            pengguna: $pengguna,
+            jenis: \App\Models\AuditLog::JENIS_ABSENSI,
+            idReferensi: $hasil['absensi']->id_absensi,
+            aksi: \App\Models\AuditLog::AKSI_CREATE,
+            catatan: 'Check-in absensi' . ($hasil['menit_telat'] > 0 
+                ? " (terlambat {$hasil['menit_telat']} menit)" 
+                : ''),
+            sebelum: null,
+            sesudah: $hasil['absensi']->toArray(),
+            ipAddress: $request->ip()
+        );
+
         $absensi = $hasil['absensi'];
 
         return response()->json([
@@ -124,7 +148,17 @@ class AbsensiApiController extends Controller
 
     public function checkOut(CheckOutRequest $request): JsonResponse
     {
-        $karyawan = Auth::user()->karyawan;
+        $pengguna = Auth::user();
+        
+        if (!$pengguna instanceof \App\Models\Pengguna) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'User tidak terautentikasi dengan benar.',
+                'data'    => null,
+            ], 401);
+        }
+        
+        $karyawan = $pengguna->karyawan;
 
         if (! $karyawan || $karyawan->status === 'nonaktif') {
             return response()->json([
@@ -153,6 +187,15 @@ class AbsensiApiController extends Controller
 
         // 2. Proses check-out
         try {
+            // Simpan data sebelum check-out untuk audit log
+            $absensiSebelum = Absensi::where('id_karyawan', $karyawan->id_karyawan)
+                ->whereDate('tanggal_absensi', today())
+                ->whereNotNull('waktu_check_in')
+                ->whereNull('waktu_check_out')
+                ->first();
+            
+            $sebelum = $absensiSebelum ? $absensiSebelum->toArray() : null;
+            
             $hasil = $this->absensiService->checkOut(
                 karyawan:    $karyawan,
                 lat:         (float) $request->latitude,
@@ -169,7 +212,21 @@ class AbsensiApiController extends Controller
 
         $absensi = $hasil['absensi'];
 
-        // 3. Susun pesan dan notifikasi Pending Lembur
+        // 3. Catat audit log untuk check-out
+        \App\Services\AuditLogService::catat(
+            pengguna: $pengguna,
+            jenis: \App\Models\AuditLog::JENIS_ABSENSI,
+            idReferensi: $absensi->id_absensi,
+            aksi: \App\Models\AuditLog::AKSI_UPDATE,
+            catatan: 'Check-out absensi' 
+                . ($hasil['pending_lembur'] ? " (kelebihan {$hasil['menit_kelebihan']} menit)" : '')
+                . ($absensi->menit_pulang_cepat > 0 ? " (pulang cepat {$absensi->menit_pulang_cepat} menit)" : ''),
+            sebelum: $sebelum,
+            sesudah: $absensi->toArray(),
+            ipAddress: $request->ip()
+        );
+
+        // 4. Susun pesan dan notifikasi Pending Lembur
         $pesan = 'Check-out berhasil dicatat.';
         $info  = [
             'id_absensi'         => $absensi->id_absensi,

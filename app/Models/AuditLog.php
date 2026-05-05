@@ -58,6 +58,7 @@ class AuditLog extends Model
     const ROLE_USER_DEPARTEMEN = 'user_departemen';
     const ROLE_HR              = 'hr';
     const ROLE_SUPER_ADMIN     = 'super_admin';
+    const ROLE_KARYAWAN        = 'karyawan';
     const ROLE_SISTEM          = 'sistem';
 
     const JENIS_ABSENSI     = 'absensi';
@@ -67,16 +68,28 @@ class AuditLog extends Model
     const JENIS_AKUN        = 'akun';
     const JENIS_MASTER_DATA = 'master_data';
     const JENIS_KONFIGURASI = 'konfigurasi';
+    const JENIS_AUTH        = 'auth';
 
+    const AKSI_LOGIN      = 'login';
+    const AKSI_LOGOUT     = 'logout';
     const AKSI_APPROVE    = 'approve';
     const AKSI_REJECT     = 'reject';
     const AKSI_CREATE     = 'create';
     const AKSI_UPDATE     = 'update';
     const AKSI_DEACTIVATE = 'deactivate';
+    const AKSI_ACTIVATE   = 'activate';
     const AKSI_UPLOAD     = 'upload';
 
     public function pelaku(): BelongsTo
     {
         return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
+    }
+
+    /**
+     * Alias untuk relasi pelaku (untuk konsistensi dengan controller)
+     */
+    public function pengguna(): BelongsTo
+    {
+        return $this->pelaku();
     }
 }

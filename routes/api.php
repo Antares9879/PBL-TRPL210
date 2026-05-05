@@ -7,9 +7,12 @@ use App\Http\Controllers\Api\SuperAdmin\PerusahaanApiController;
 use App\Http\Controllers\Api\SuperAdmin\DepartemenApiController;
 use App\Http\Controllers\Api\SuperAdmin\ShiftApiController;
 use App\Http\Controllers\Api\SuperAdmin\KonfigurasiAreaApiController;
+use App\Http\Controllers\Api\SuperAdmin\DashboardApiController as SuperAdminDashboardApiController;
+use App\Http\Controllers\Api\SuperAdmin\AuditLogApiController;
 use App\Http\Controllers\Api\AdminOutsource\KaryawanApiController;
 use App\Http\Controllers\Api\AdminOutsource\PlanningKerjaApiController;
 use App\Http\Controllers\Api\AdminOutsource\ValidasiAbsensiApiController;
+use App\Http\Controllers\Api\AdminOutsource\DashboardApiController as AdminDashboardApiController;
 use App\Http\Controllers\Api\Karyawan\AbsensiApiController;
 use App\Http\Controllers\Api\Karyawan\JadwalApiController;
 use App\Http\Controllers\Api\Karyawan\LemburApiController;
@@ -39,6 +42,18 @@ Route::middleware('auth:sanctum')->group(function () {
         ->name('api.super-admin.')
         ->group(function () {
 
+            // Dashboard
+            Route::get('dashboard/stats', [SuperAdminDashboardApiController::class, 'stats'])
+                ->name('dashboard.stats');
+            Route::get('dashboard/audit-log', [SuperAdminDashboardApiController::class, 'auditLog'])
+                ->name('dashboard.audit-log');
+
+            // Audit Log (halaman lengkap dengan pagination & filter)
+            Route::get('audit-log', [AuditLogApiController::class, 'index'])
+                ->name('audit-log.index');
+            Route::get('audit-log/{id}', [AuditLogApiController::class, 'show'])
+                ->name('audit-log.show');
+
             // F17 — Manajemen Akun
             Route::apiResource('akun', AkunApiController::class);
             Route::put('akun/{akun}/reset-password', [AkunApiController::class, 'resetPassword'])
@@ -58,6 +73,12 @@ Route::middleware('auth:sanctum')->group(function () {
         ->prefix('admin')
         ->name('api.admin.')
         ->group(function () {
+
+            // Dashboard
+            Route::get('dashboard/stats', [AdminDashboardApiController::class, 'stats'])
+                ->name('dashboard.stats');
+            Route::get('notifikasi', [AdminDashboardApiController::class, 'notifikasi'])
+                ->name('notifikasi');
 
             // ── Lookup endpoints (read-only, untuk populate dropdown) ─────────────
             Route::get('lookup/departemen', [DepartemenApiController::class, 'index'])
