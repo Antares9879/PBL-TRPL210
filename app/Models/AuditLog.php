@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array|null  $data_sebelum    snapshot JSON sebelum perubahan
  * @property array|null  $data_sesudah    snapshot JSON sesudah perubahan
  * @property string|null $ip_address
- * @property string      $waktu_aksi
+ * @property \Carbon\Carbon      $waktu_aksi
  */
 class AuditLog extends Model
 {
