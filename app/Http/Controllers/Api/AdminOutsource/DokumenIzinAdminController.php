@@ -55,11 +55,23 @@ class DokumenIzinAdminController extends Controller
      */
     public function stream(int $id, int $docId): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        // Scope izin ke karyawan milik perusahaan Admin yang login
+        // Scope izin yang masih tahap validasi Admin:
+        // - status izin masih menunggu
+        // - jika wajib dokumen, status dokumen harus sudah_upload dan file sudah ada
         $izin = PengajuanIzin::whereHas(
             'karyawan',
             fn($q) => $q->where('id_perusahaan', $this->getIdPerusahaan())
-        )->find($id);
+        )
+        ->where('status', PengajuanIzin::STATUS_MENUNGGU)
+        ->where(function ($q) {
+            $q->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', false))
+                ->orWhere(function ($wajib) {
+                    $wajib->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', true))
+                        ->where('status_dokumen', PengajuanIzin::DOKUMEN_SUDAH_UPLOAD)
+                        ->whereHas('dokumen');
+                });
+        })
+        ->find($id);
 
         if (! $izin) {
             return response()->json([

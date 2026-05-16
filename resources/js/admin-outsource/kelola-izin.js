@@ -814,11 +814,6 @@ function bindEvents() {
         await prosesIzin(selectedIzinId, 'ditolak', catatan);
     });
 
-    // Tetap setujui (konfirmasi tanpa dokumen)
-    document.getElementById('btn-tetap-approve')?.addEventListener('click', async () => {
-        closeModal('modal-approve-warning');
-        await prosesIzin(selectedIzinId, 'disetujui');
-    });
 }
 
 // ── Handle Approve (cek dokumen wajib terlebih dahulu) ────────────────────────
@@ -826,13 +821,10 @@ function _handleApprove(btn) {
     const wajib    = btn.dataset.wajib === '1';
     const dokStatus = btn.dataset.dokStatus ?? '';
     const id       = parseInt(btn.dataset.id);
-    const nama     = btn.dataset.nama;
 
-    // Jika dokumen wajib tapi belum diupload → tampilkan warning
-    if (wajib && dokStatus !== 'sudah_upload' && dokStatus !== 'lengkap') {
-        selectedIzinId = id;
-        document.getElementById('modal-approve-warning-nama').textContent = nama;
-        openModal('modal-approve-warning');
+    // Izin wajib dokumen hanya boleh disetujui setelah status dokumen sudah_upload.
+    if (wajib && dokStatus !== 'sudah_upload') {
+        toast('Dokumen wajib harus sudah diunggah sebelum izin bisa disetujui.', 'warning');
         return;
     }
 
