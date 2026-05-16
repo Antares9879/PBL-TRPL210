@@ -180,8 +180,11 @@ class ValidasiAbsensiApiController extends Controller
         ])
         ->whereHas('karyawan', fn($q) => $q->where('id_perusahaan', $idPerusahaan));
 
+        $status = $request->has('status')
+            ? trim((string) $request->query('status', ''))
+            : null;
+
         if ($request->has('status')) {
-            $status      = trim((string) $request->query('status', ''));
             $statusValid = [
                 PengajuanIzin::STATUS_MENUNGGU,
                 PengajuanIzin::STATUS_DISETUJUI,
@@ -192,6 +195,32 @@ class ValidasiAbsensiApiController extends Controller
             }
         } else {
             $query->where('status', PengajuanIzin::STATUS_MENUNGGU);
+        }
+
+        // Untuk alur validasi Admin:
+        // - izin non-wajib dokumen tetap tampil
+        // - izin wajib dokumen hanya tampil jika dokumen sudah diunggah
+        //   (status_dokumen = sudah_upload + minimal ada file)
+        $pendingDokumenSiap = function ($q) {
+            $q->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', false))
+                ->orWhere(function ($wajib) {
+                    $wajib->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', true))
+                        ->where('status_dokumen', PengajuanIzin::DOKUMEN_SUDAH_UPLOAD)
+                        ->whereHas('dokumen');
+                });
+        };
+
+        if ($status === PengajuanIzin::STATUS_MENUNGGU || $status === null) {
+            $query->where($pendingDokumenSiap);
+        } elseif ($status === '') {
+            // Saat "semua status", tetap sembunyikan izin menunggu yang belum layak divalidasi.
+            $query->where(function ($q) use ($pendingDokumenSiap) {
+                $q->where('status', '!=', PengajuanIzin::STATUS_MENUNGGU)
+                    ->orWhere(function ($pending) use ($pendingDokumenSiap) {
+                        $pending->where('status', PengajuanIzin::STATUS_MENUNGGU)
+                            ->where($pendingDokumenSiap);
+                    });
+            });
         }
 
         if ($request->filled('search')) {
@@ -262,12 +291,24 @@ class ValidasiAbsensiApiController extends Controller
             ], 422);
         }
 
-        if ($request->aksi === 'approve' && $izin->jenisIzin->wajib_dokumen && $izin->dokumen->isEmpty()) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Tidak dapat menyetujui izin ini. Dokumen pendukung wajib diunggah terlebih dahulu.',
-                'data'    => null,
-            ], 422);
+        if ($request->aksi === 'approve' && $izin->jenisIzin->wajib_dokumen) {
+            if ($izin->status_dokumen !== PengajuanIzin::DOKUMEN_SUDAH_UPLOAD) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Tidak dapat menyetujui izin ini. Dokumen wajib harus berstatus sudah upload.',
+                    'data'    => [
+                        'status_dokumen' => $izin->status_dokumen,
+                    ],
+                ], 422);
+            }
+
+            if ($izin->dokumen->isEmpty()) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Tidak dapat menyetujui izin ini. Dokumen pendukung wajib diunggah terlebih dahulu.',
+                    'data'    => null,
+                ], 422);
+            }
         }
 
         $sebelum = $izin->toArray();
@@ -324,7 +365,7 @@ class ValidasiAbsensiApiController extends Controller
 
     // ── PRIVATE HELPERS ───────────────────────────────────────────────────────
 
-    private function createOrUpdateAbsensiForPermission(PengajuanIzin $izin, $admin): void
+    private function createOrUpdateAbsensiForPermission(PengajuanIzin $izin, Pengguna $admin): void
     {
         $tanggalMulai   = $izin->tanggal_izin;
         $tanggalSelesai = $izin->getTanggalSelesaiEfektif();
@@ -373,7 +414,7 @@ class ValidasiAbsensiApiController extends Controller
 
     private function markAsAlpaForRejectedPermission(
         PengajuanIzin $izin,
-        $admin,
+        Pengguna $admin,
         ?string $catatanPenolakan
     ): void {
         $tanggalMulai   = $izin->tanggal_izin;

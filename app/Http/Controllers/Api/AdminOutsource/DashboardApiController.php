@@ -62,11 +62,21 @@ class DashboardApiController extends Controller
             ->whereDate('tanggal_absensi', today())
             ->count();
 
-        // Izin pending (status = 'menunggu')
+        // Izin pending yang actionable untuk Admin:
+        // - jenis non-wajib dokumen: tetap dihitung
+        // - jenis wajib dokumen: hanya jika status_dokumen sudah_upload + ada file dokumen
         $izinPending = PengajuanIzin::whereHas('karyawan', function ($q) use ($idPerusahaan) {
                 $q->where('id_perusahaan', $idPerusahaan);
             })
-            ->where('status', 'menunggu')
+            ->where('status', PengajuanIzin::STATUS_MENUNGGU)
+            ->where(function ($q) {
+                $q->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', false))
+                    ->orWhere(function ($wajib) {
+                        $wajib->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', true))
+                            ->where('status_dokumen', PengajuanIzin::DOKUMEN_SUDAH_UPLOAD)
+                            ->whereHas('dokumen');
+                    });
+            })
             ->count();
 
         // Planning kerja bulan ini
