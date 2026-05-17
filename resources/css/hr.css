@@ -570,3 +570,400 @@
         justify-content: center;
     }
 }
+
+/* ─── Kartu Bulan (Halaman Dokumen) ───────────────────────────────────────── */
+.hr-kartu-bulan {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.hr-kartu-bulan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+}
+
+.hr-kartu-bulan-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.hr-kartu-bulan-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hr-kartu-bulan-total {
+    font-size: 12px;
+    color: #64748b;
+    background: #f8fafc;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.hr-kartu-bulan-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.hr-progress-bar-container {
+    width: 100%;
+    height: 10px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.hr-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--hr-hijau-utama), var(--hr-hijau-muda));
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.hr-progress-label {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0 0 16px;
+}
+
+.hr-kartu-bulan-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* ─── Skeleton Loading ────────────────────────────────────────────────────── */
+.hr-skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.hr-skeleton-card {
+    height: 200px;
+    border-radius: 14px;
+}
+
+/* ─── Tabs ─────────────────────────────────────────────────────────────────── */
+.hr-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.hr-tab {
+    padding: 8px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.hr-tab:hover {
+    background: #f8fafc;
+    border-color: var(--hr-hijau-border);
+}
+
+.hr-tab--active {
+    background: var(--hr-hijau-utama);
+    color: #fff;
+    border-color: var(--hr-hijau-utama);
+}
+
+/* Bulk action + checkbox */
+.hr-bulk-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    border-radius: 10px;
+}
+
+.hr-bulk-action-left,
+.hr-bulk-action-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hr-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #475569;
+}
+
+.hr-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--hr-hijau-utama);
+    cursor: pointer;
+}
+
+.hr-selected-count {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #14532d;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.data-table tbody tr.hr-row-selected td {
+    background: #ecfdf3;
+}
+
+/* ─── Badge Status Dokumen (tambahan) ─────────────────────────────────────── */
+.hr-badge-sudah-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DBEAFE;
+    color: #1E3A8A;
+    border: 1px solid #BFDBFE;
+}
+
+.hr-badge-belum-upload {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEF3C7;
+    color: #78350F;
+    border: 1px solid #FDE68A;
+}
+
+.hr-badge-lengkap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+    border: 1px solid #BBF7D0;
+}
+
+.hr-badge-tidak-lengkap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEE2E2;
+    color: #7F1D1D;
+    border: 1px solid #FECACA;
+}
+
+/* ─── Lightbox ─────────────────────────────────────────────────────────────── */
+.hr-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+}
+
+.hr-lightbox-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+}
+
+.hr-lightbox-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: auto;
+}
+
+.hr-lightbox-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.hr-lightbox-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* ─── Dokumen Card (di modal detail) ──────────────────────────────────────── */
+.hr-dokumen-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: background 0.15s;
+}
+
+.hr-dokumen-card:hover {
+    background: #f1f5f9;
+}
+
+.hr-dokumen-info {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ─── Button Variants ──────────────────────────────────────────────────────── */
+.hr-btn-sm {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+}
+
+.hr-btn-outline {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+}
+
+.hr-btn-outline:hover {
+    background: #f8fafc;
+    border-color: var(--hr-hijau-border);
+    color: var(--hr-hijau-tua);
+}
+
+.hr-btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+}
+
+.hr-btn-danger:hover {
+    background: #b91c1c;
+}
+
+.hr-btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.hr-btn-back:hover {
+    background: #f8fafc;
+    border-color: var(--hr-hijau-border);
+    color: var(--hr-hijau-tua);
+}
+
+/* ─── Textarea ─────────────────────────────────────────────────────────────── */
+.hr-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #374151;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.hr-textarea:focus {
+    border-color: var(--hr-hijau-utama);
+    box-shadow: 0 0 0 3px rgba(26, 110, 26, 0.12);
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hr-kartu-bulan-actions {
+        flex-direction: column;
+    }
+    
+    .hr-kartu-bulan-actions button {
+        width: 100%;
+    }
+    
+    .hr-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+    
+    .hr-lightbox-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .hr-bulk-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hr-bulk-action-right .hr-filter-select,
+    .hr-bulk-action-right .hr-btn-primary {
+        width: 100%;
+    }
+}

@@ -25,19 +25,11 @@ class PageController extends Controller
     }
 
     /**
-     * F14 — Verifikasi Dokumen Izin (Daftar Per Bulan)
+     * F14 — Verifikasi Dokumen Izin
      */
     public function dokumen(): View
     {
         return view('hr.dokumen');
-    }
-
-    /**
-     * F14 — Verifikasi Dokumen Izin (Detail Per Bulan)
-     */
-    public function dokumenDetail(): View
-    {
-        return view('hr.dokumen-detail');
     }
 
     /**

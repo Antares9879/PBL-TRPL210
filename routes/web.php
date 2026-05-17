@@ -46,7 +46,6 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('dashboard', [HRPageController::class, 'dashboard'])->name('dashboard');
             Route::get('dokumen',   [HRPageController::class, 'dokumen'])  ->name('dokumen');
-            Route::get('dokumen/detail', [HRPageController::class, 'dokumenDetail'])->name('dokumen.detail');
             Route::get('rekap',     [HRPageController::class, 'rekap'])    ->name('rekap');
             Route::get('audit',     [HRPageController::class, 'audit'])    ->name('audit');
         });

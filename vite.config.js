@@ -44,6 +44,7 @@ export default defineConfig({
 
                 // ── JS HR ─────────────────────────────────────────────────────
                 'resources/js/hr/dashboard.js',
+                'resources/js/hr/dokumen.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',
