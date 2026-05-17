@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdmin\PageController as SuperAdminPageController;
 use App\Http\Controllers\AdminOutsource\PageController as AdminOutsourcePageController;
 use App\Http\Controllers\Karyawan\PageController as KaryawanPageController;
 use App\Http\Controllers\UserDepartemen\PageController as UserDepartemenPageController;
+use App\Http\Controllers\HR\PageController as HRPageController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes — E-Outsourcing PBL-TRPL210
@@ -39,13 +40,15 @@ Route::middleware('auth')->group(function () {
         });
 
     // ── HR (F13–F16) ──────────────────────────────────────────────────────────
-    // Placeholder — PageController HR akan dibuat saat implementasi fitur HR
-    // Route::middleware('role:hr')
-    //     ->prefix('hr')
-    //     ->name('hr.')
-    //     ->group(function () {
-    //         Route::get('dashboard', [HR\PageController::class, 'dashboard'])->name('dashboard');
-    //     });
+    Route::middleware('role:hr')
+        ->prefix('hr')
+        ->name('hr.')
+        ->group(function () {
+            Route::get('dashboard', [HRPageController::class, 'dashboard'])->name('dashboard');
+            Route::get('dokumen',   [HRPageController::class, 'dokumen'])  ->name('dokumen');
+            Route::get('rekap',     [HRPageController::class, 'rekap'])    ->name('rekap');
+            Route::get('audit',     [HRPageController::class, 'audit'])    ->name('audit');
+        });
 
     // ── User Departemen (F12 + Dashboard Monitoring) ──────────────────────────
     Route::middleware('role:user_departemen')

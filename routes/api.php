@@ -108,6 +108,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('dokumen/{id}/verifikasi', [HRDokumenApiController::class, 'verifikasi'])
                 ->name('dokumen.verifikasi');
 
+            /** Tandai dokumen secara bulk (lengkap/tidak lengkap) */
+            Route::post('dokumen/bulk-verifikasi', [HRDokumenApiController::class, 'bulkVerifikasi'])
+                ->name('dokumen.bulk-verifikasi');
+
             /** Stream / preview file dokumen */
             Route::get('dokumen/{id}/stream/{docId}', [HRDokumenApiController::class, 'streamDokumen'])
                 ->name('dokumen.stream');
