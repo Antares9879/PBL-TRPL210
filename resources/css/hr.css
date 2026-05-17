@@ -1,0 +1,572 @@
+/**
+ * resources/css/hr.css
+ * CSS khusus untuk halaman-halaman HR (F13–F16)
+ * E-Outsourcing PT Ecogreen Oleochemicals Batam Plant
+ *
+ * Palet warna: Identitas PT Ecogreen (hijau)
+ */
+
+/* ─── CSS Variables HR ─────────────────────────────────────────────────────── */
+:root {
+    --hr-hijau-tua:    #0D4726;
+    --hr-hijau-utama:  #1A6E1A;
+    --hr-hijau-muda:   #2ECC71;
+    --hr-hijau-bg:     #EAF5EE;
+    --hr-hijau-border: #AADDAA;
+    
+    /* Status colors */
+    --hr-hadir:    #10B981;
+    --hr-izin:     #3B82F6;
+    --hr-alpa:     #EF4444;
+    --hr-pending:  #F59E0B;
+}
+
+/* ─── Filter Panel ────────────────────────────────────────────────────────── */
+.hr-filter-panel {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+}
+
+.hr-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hr-filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.hr-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hr-filter-select {
+    padding: 8px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    background: #fff;
+    color: #374151;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.hr-filter-select:focus {
+    border-color: var(--hr-hijau-utama);
+    box-shadow: 0 0 0 3px rgba(26, 110, 26, 0.12);
+}
+
+.hr-btn-primary {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--hr-hijau-utama), var(--hr-hijau-tua));
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.hr-btn-primary:hover {
+    opacity: 0.9;
+}
+
+.hr-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ─── Stats Grid ──────────────────────────────────────────────────────────── */
+.hr-stats-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.hr-stats-grid--4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.hr-stats-grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1100px) {
+    .hr-stats-grid--4 { grid-template-columns: repeat(2, 1fr); }
+    .hr-stats-grid--3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .hr-stats-grid--4,
+    .hr-stats-grid--3 { grid-template-columns: 1fr; }
+}
+
+/* ─── Stat Card ───────────────────────────────────────────────────────────── */
+.hr-stat-card {
+    position: relative;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 20px;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.hr-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+}
+
+/* Border kiri sebagai aksen */
+.hr-stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.hr-stat-card--green::before   { background: var(--hr-hijau-utama); }
+.hr-stat-card--blue::before    { background: #3B82F6; }
+.hr-stat-card--amber::before   { background: #F59E0B; }
+.hr-stat-card--violet::before  { background: #8B5CF6; }
+.hr-stat-card--pending::before { background: var(--hr-pending); }
+
+.hr-stat-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.hr-stat-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hr-stat-card--green .hr-stat-card-icon   { background: var(--hr-hijau-bg); color: var(--hr-hijau-utama); }
+.hr-stat-card--blue .hr-stat-card-icon    { background: #EFF6FF; color: #2563EB; }
+.hr-stat-card--amber .hr-stat-card-icon   { background: #FFFBEB; color: #D97706; }
+.hr-stat-card--violet .hr-stat-card-icon  { background: #F5F3FF; color: #7C3AED; }
+.hr-stat-card--pending .hr-stat-card-icon { background: #FFFBEB; color: var(--hr-pending); }
+
+.hr-stat-card-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.hr-stat-card-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.hr-stat-card-value {
+    margin-bottom: 12px;
+}
+
+.hr-stat-card-value .nilai {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.hr-stat-card-footer .label {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* ─── Badge Status Kehadiran ──────────────────────────────────────────────── */
+.hr-badge-hadir {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+    border: 1px solid #BBF7D0;
+}
+
+.hr-badge-izin {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DBEAFE;
+    color: #1E3A8A;
+    border: 1px solid #BFDBFE;
+}
+
+.hr-badge-alpa {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEE2E2;
+    color: #7F1D1D;
+    border: 1px solid #FECACA;
+}
+
+.hr-badge-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEF3C7;
+    color: #78350F;
+    border: 1px solid #FDE68A;
+}
+
+/* ─── Badge Status Validasi ───────────────────────────────────────────────── */
+.hr-badge-menunggu {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEF3C7;
+    color: #78350F;
+    border: 1px solid #FDE68A;
+}
+
+.hr-badge-disetujui {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+    border: 1px solid #BBF7D0;
+}
+
+.hr-badge-ditolak {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEE2E2;
+    color: #7F1D1D;
+    border: 1px solid #FECACA;
+}
+
+/* ─── Tabel HR ────────────────────────────────────────────────────────────── */
+.hr-tabel {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.hr-tabel thead tr {
+    background: var(--hr-hijau-bg);
+    border-bottom: 2px solid var(--hr-hijau-border);
+}
+
+.hr-tabel th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--hr-hijau-tua);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+}
+
+.hr-tabel td {
+    padding: 12px 14px;
+    color: #374151;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+}
+
+.hr-tabel tbody tr:nth-child(even) {
+    background: #fafbfc;
+}
+
+.hr-tabel tbody tr:hover td {
+    background: var(--hr-hijau-bg);
+}
+
+/* Baris dengan warning (kehadiran < 70%) */
+.hr-tabel tbody tr.hr-row-warning td {
+    background: #FEF2F2;
+}
+
+.hr-tabel tbody tr.hr-row-warning:hover td {
+    background: #FEE2E2;
+}
+
+/* ─── Progress Bar (untuk % kehadiran) ────────────────────────────────────── */
+.hr-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.hr-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--hr-hijau-utama), var(--hr-hijau-muda));
+    border-radius: 999px;
+    transition: width 1s cubic-bezier(0.16,1,0.3,1);
+}
+
+.hr-progress-bar-fill--warning {
+    background: linear-gradient(to right, #F59E0B, #FBBF24);
+}
+
+.hr-progress-bar-fill--danger {
+    background: linear-gradient(to right, #EF4444, #F87171);
+}
+
+/* ─── Paginasi ────────────────────────────────────────────────────────────── */
+.hr-paginasi {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 0 0;
+    margin-top: 16px;
+    border-top: 1px solid var(--surface-border);
+}
+
+.hr-paginasi-info {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.hr-paginasi-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.hr-paginasi-btn {
+    padding: 6px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.hr-paginasi-btn:hover:not(:disabled) {
+    background: var(--hr-hijau-bg);
+    color: var(--hr-hijau-tua);
+    border-color: var(--hr-hijau-border);
+}
+
+.hr-paginasi-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.hr-paginasi-btn--active {
+    background: var(--hr-hijau-utama);
+    color: #fff;
+    border-color: var(--hr-hijau-utama);
+}
+
+/* ─── Loading Skeleton ────────────────────────────────────────────────────── */
+.hr-skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: hr-shimmer 1.5s ease infinite;
+    border-radius: 4px;
+}
+
+@keyframes hr-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ─── Modal HR ────────────────────────────────────────────────────────────── */
+.hr-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(3px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.hr-modal-content {
+    background: #fff;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.15);
+    animation: hr-slideUp 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+
+.hr-modal-lg {
+    max-width: 800px;
+}
+
+@keyframes hr-slideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+.hr-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.hr-modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hr-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: #94a3b8;
+    padding: 0;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.hr-modal-close:hover {
+    background: #f1f5f9;
+    color: #374151;
+}
+
+.hr-modal-body {
+    padding: 20px 24px;
+}
+
+.hr-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    margin-top: 4px;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* ─── Toast Notifikasi ────────────────────────────────────────────────────── */
+.hr-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    z-index: 9999;
+    animation: hr-slideInUp 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.hr-toast.sukses {
+    background: var(--hr-hijau-utama);
+    color: white;
+}
+
+.hr-toast.error {
+    background: #DC2626;
+    color: white;
+}
+
+.hr-toast.warning {
+    background: #D97706;
+    color: white;
+}
+
+@keyframes hr-slideInUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hr-filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hr-filter-select,
+    .hr-btn-primary {
+        width: 100%;
+    }
+
+    .hr-paginasi {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hr-paginasi-buttons {
+        justify-content: center;
+    }
+}

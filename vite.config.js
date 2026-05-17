@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/css/super-admin.css',
                 'resources/css/admin.css',
                 'resources/css/departemen.css',
+                'resources/css/hr.css',
                 'resources/css/karyawan.css',
 
                 // ── JS global ───────────────────────────────────────────────
@@ -40,6 +41,9 @@ export default defineConfig({
                 'resources/js/user-departemen/dashboard.js',
                 'resources/js/user-departemen/validasi-lembur.js',
                 'resources/js/user-departemen/monitoring-absensi.js',
+
+                // ── JS HR ─────────────────────────────────────────────────────
+                'resources/js/hr/dashboard.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',
