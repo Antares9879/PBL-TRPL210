@@ -1,6 +1,6 @@
 /**
  * resources/js/hr/dokumen.js
- * Verifikasi Dokumen Izin HR - Single Action
+ * Verifikasi Dokumen Izin HR - Bulk Action + Detail Verifikasi
  */
 
 const state = {
@@ -10,10 +10,13 @@ const state = {
         tahun: '',
         jenisIzin: '',
         statusDokumen: '',
+        statusValidasiAdmin: '',
         perusahaan: '',
         departemen: '',
         search: ''
     },
+    selectedIds: new Set(),
+    selectedBulkAction: '',
     selectedIzinId: null,
     selectedAksi: null
 };
@@ -34,14 +37,29 @@ function cacheElements() {
     el.filterTahun = document.getElementById('filter-tahun');
     el.filterJenisIzin = document.getElementById('filter-jenis-izin');
     el.filterStatusDokumen = document.getElementById('filter-status-dokumen');
+    el.filterStatusValidasiAdmin = document.getElementById('filter-status-validasi-admin');
     el.filterPerusahaan = document.getElementById('filter-perusahaan');
     el.filterDepartemen = document.getElementById('filter-departemen');
     el.filterSearch = document.getElementById('filter-search');
     el.btnTerapkan = document.getElementById('btn-terapkan-filter-detail');
     el.btnReset = document.getElementById('btn-reset-filter');
 
+    el.selectAllHeader = document.getElementById('select-all-header');
+    el.selectAllTop = document.getElementById('select-all-checkbox');
+    el.selectedCount = document.getElementById('selected-count');
+    el.bulkActionControls = document.getElementById('bulk-action-controls');
+    el.bulkActionSelect = document.getElementById('bulk-action-select');
+    el.btnBulkGo = document.getElementById('btn-bulk-action-go');
+
     el.tbody = document.getElementById('tbody-pengajuan-izin');
     el.paginasi = document.getElementById('paginasi-pengajuan');
+
+    el.modalBulk = document.getElementById('modal-bulk-konfirmasi');
+    el.modalBulkTitle = document.getElementById('modal-bulk-title');
+    el.modalBulkBody = document.getElementById('modal-bulk-body');
+    el.inputBulkCatatan = document.getElementById('input-bulk-catatan');
+    el.btnBulkBatal = document.getElementById('btn-bulk-batal');
+    el.btnBulkSubmit = document.getElementById('btn-bulk-submit');
 
     el.modalDetail = document.getElementById('modal-detail-izin');
     el.modalDetailBody = document.getElementById('modal-detail-body');
@@ -115,6 +133,7 @@ async function loadFilterOptions() {
 async function loadPengajuanIzin(page = 1) {
     state.page = page;
     showSkeleton();
+    clearSelection();
 
     const params = new URLSearchParams();
     params.set('page', String(page));
@@ -123,6 +142,7 @@ async function loadPengajuanIzin(page = 1) {
     if (state.filters.tahun) params.set('tahun', state.filters.tahun);
     if (state.filters.jenisIzin) params.set('jenis_izin', state.filters.jenisIzin);
     if (state.filters.statusDokumen) params.set('status_dokumen', state.filters.statusDokumen);
+    if (state.filters.statusValidasiAdmin) params.set('status_validasi_admin', state.filters.statusValidasiAdmin);
     if (state.filters.perusahaan) params.set('id_perusahaan', state.filters.perusahaan);
     if (state.filters.departemen) params.set('id_departemen', state.filters.departemen);
     if (state.filters.search) params.set('search', state.filters.search);
@@ -138,6 +158,7 @@ async function loadPengajuanIzin(page = 1) {
         const paginated = json.data || {};
         renderTabel(paginated.data || [], paginated);
         renderPaginasi(paginated);
+        updateBulkUI();
     } catch (err) {
         console.error('[HR Dokumen] loadPengajuanIzin', err);
         toast('Gagal memuat data pengajuan izin.', 'error');
@@ -151,7 +172,7 @@ function renderTabel(rows, meta) {
     if (!rows.length) {
         el.tbody.innerHTML = `
             <tr>
-                <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
+                <td colspan="11" style="text-align:center;padding:40px;color:#94a3b8;">
                     Tidak ada data pengajuan izin pada filter ini.
                 </td>
             </tr>
@@ -161,12 +182,17 @@ function renderTabel(rows, meta) {
 
     el.tbody.innerHTML = rows.map((row) => {
         const id = Number(row.id_izin);
+        const checked = state.selectedIds.has(id) ? 'checked' : '';
+        const selectedClass = state.selectedIds.has(id) ? 'hr-row-selected' : '';
         const karyawan = row.karyawan || {};
         const jenisIzin = row.jenis_izin || {};
         const jumlahDokumen = Number(row.jumlah_dokumen || 0);
 
         return `
-            <tr data-row-id="${id}">
+            <tr class="${selectedClass}" data-row-id="${id}">
+                <td>
+                    <input type="checkbox" class="hr-checkbox row-checkbox" data-id="${id}" ${checked}>
+                </td>
                 <td>
                     <div style="font-weight:500;color:#0f172a;">${esc(karyawan.nama_lengkap || '-')}</div>
                     <div style="font-size:11px;color:#94a3b8;">${esc(karyawan.nomor_karyawan || '')}</div>
@@ -179,6 +205,7 @@ function renderTabel(rows, meta) {
                 <td style="text-align:center;">
                     <button class="hr-btn-sm hr-btn-outline btn-lihat-detail-izin" data-id="${id}">${jumlahDokumen} file</button>
                 </td>
+                <td>${badgeStatusValidasiAdmin(row.status_validasi_admin || row.status || '')}</td>
                 <td>${badgeStatusDokumen(row.status_dokumen || '')}</td>
                 <td>
                     <button class="hr-btn-sm hr-btn-primary btn-verifikasi" data-id="${id}">
@@ -227,6 +254,7 @@ function bindEvents() {
         state.filters.tahun = el.filterTahun?.value || '';
         state.filters.jenisIzin = el.filterJenisIzin?.value || '';
         state.filters.statusDokumen = el.filterStatusDokumen?.value || '';
+        state.filters.statusValidasiAdmin = el.filterStatusValidasiAdmin?.value || '';
         state.filters.perusahaan = el.filterPerusahaan?.value || '';
         state.filters.departemen = el.filterDepartemen?.value || '';
         state.filters.search = (el.filterSearch?.value || '').trim();
@@ -240,12 +268,14 @@ function bindEvents() {
 
         state.filters.jenisIzin = '';
         state.filters.statusDokumen = '';
+        state.filters.statusValidasiAdmin = '';
         state.filters.perusahaan = '';
         state.filters.departemen = '';
         state.filters.search = '';
 
         if (el.filterJenisIzin) el.filterJenisIzin.value = '';
         if (el.filterStatusDokumen) el.filterStatusDokumen.value = '';
+        if (el.filterStatusValidasiAdmin) el.filterStatusValidasiAdmin.value = '';
         if (el.filterPerusahaan) el.filterPerusahaan.value = '';
         if (el.filterDepartemen) el.filterDepartemen.value = '';
         if (el.filterSearch) el.filterSearch.value = '';
@@ -270,6 +300,46 @@ function bindEvents() {
         const page = Number(btn.dataset.page || 1);
         if (page > 0) loadPengajuanIzin(page);
     });
+
+    const handleSelectAll = (checked) => {
+        getVisibleRowIds().forEach((id) => {
+            if (checked) state.selectedIds.add(id);
+            else state.selectedIds.delete(id);
+        });
+        renderSelectedRows();
+        updateBulkUI();
+    };
+
+    el.selectAllHeader?.addEventListener('change', (e) => handleSelectAll(e.target.checked));
+    el.selectAllTop?.addEventListener('change', (e) => handleSelectAll(e.target.checked));
+
+    el.tbody?.addEventListener('change', (e) => {
+        const checkbox = e.target.closest('.row-checkbox');
+        if (!checkbox) return;
+
+        const id = Number(checkbox.dataset.id);
+        if (!id) return;
+
+        if (checkbox.checked) state.selectedIds.add(id);
+        else state.selectedIds.delete(id);
+
+        renderSelectedRows();
+        updateBulkUI();
+    });
+
+    el.bulkActionSelect?.addEventListener('change', () => {
+        state.selectedBulkAction = el.bulkActionSelect.value;
+        updateBulkUI();
+    });
+
+    el.btnBulkGo?.addEventListener('click', () => {
+        if (state.selectedIds.size === 0) return toast('Pilih minimal 1 pengajuan terlebih dahulu.', 'warning');
+        if (!state.selectedBulkAction) return toast('Pilih aksi bulk terlebih dahulu.', 'warning');
+        openBulkModal();
+    });
+
+    el.btnBulkBatal?.addEventListener('click', () => closeModal(el.modalBulk));
+    el.btnBulkSubmit?.addEventListener('click', submitBulkVerifikasi);
 
     document.addEventListener('click', (e) => {
         const verifBtn = e.target.closest('.btn-verifikasi');
@@ -338,10 +408,120 @@ function bindEvents() {
     });
 }
 
+function updateBulkUI() {
+    const count = state.selectedIds.size;
+
+    if (el.selectedCount) {
+        el.selectedCount.style.display = count > 0 ? 'inline-flex' : 'none';
+        el.selectedCount.textContent = `${count} dipilih`;
+    }
+
+    if (el.bulkActionControls) {
+        el.bulkActionControls.style.display = count > 0 ? 'flex' : 'none';
+    }
+
+    const visible = getVisibleRowIds();
+    const allChecked = visible.length > 0 && visible.every((id) => state.selectedIds.has(id));
+    if (el.selectAllHeader) el.selectAllHeader.checked = allChecked;
+    if (el.selectAllTop) el.selectAllTop.checked = allChecked;
+
+    if (el.btnBulkGo) {
+        el.btnBulkGo.disabled = !(count > 0 && state.selectedBulkAction);
+    }
+}
+
+function renderSelectedRows() {
+    const rows = el.tbody?.querySelectorAll('tr[data-row-id]') || [];
+    rows.forEach((rowEl) => {
+        const id = Number(rowEl.dataset.rowId);
+        const checked = state.selectedIds.has(id);
+        rowEl.classList.toggle('hr-row-selected', checked);
+        const box = rowEl.querySelector('.row-checkbox');
+        if (box) box.checked = checked;
+    });
+}
+
+function getVisibleRowIds() {
+    const boxes = el.tbody?.querySelectorAll('.row-checkbox') || [];
+    return Array.from(boxes)
+        .map((node) => Number(node.dataset.id))
+        .filter((id) => Number.isFinite(id) && id > 0);
+}
+
+function clearSelection() {
+    state.selectedIds.clear();
+    state.selectedBulkAction = '';
+    if (el.bulkActionSelect) el.bulkActionSelect.value = '';
+    updateBulkUI();
+}
+
 function syncStatusTabs(status) {
     document.querySelectorAll('.hr-tab').forEach((tab) => {
         tab.classList.toggle('hr-tab--active', (tab.dataset.status || '') === status);
     });
+}
+
+function openBulkModal() {
+    const ids = Array.from(state.selectedIds);
+    const aksi = state.selectedBulkAction;
+
+    if (aksi === 'tandai_lengkap') {
+        el.modalBulkTitle.textContent = 'Konfirmasi Tandai Lengkap';
+        el.modalBulkBody.innerHTML = `<p style="color:#64748b;font-size:13px;">Tandai <strong style="color:#0f172a;">${ids.length} pengajuan</strong> sebagai <strong style="color:#10b981;">Lengkap</strong>?</p>`;
+        el.inputBulkCatatan.style.display = 'none';
+        el.inputBulkCatatan.value = '';
+        el.btnBulkSubmit.className = 'hr-btn-primary';
+        el.btnBulkSubmit.textContent = 'Ya, Tandai Lengkap';
+    } else {
+        el.modalBulkTitle.textContent = 'Konfirmasi Tandai Tidak Lengkap';
+        el.modalBulkBody.innerHTML = `
+            <p style="color:#64748b;font-size:13px;margin-bottom:12px;">
+                Tandai <strong style="color:#0f172a;">${ids.length} pengajuan</strong> sebagai <strong style="color:#ef4444;">Tidak Lengkap</strong>?
+            </p>
+            <p style="color:#ef4444;font-size:12px;margin:0;">Karyawan terkait akan menerima notifikasi terkait kekurangan dokumen.</p>
+        `;
+        el.inputBulkCatatan.style.display = 'block';
+        el.inputBulkCatatan.value = '';
+        el.btnBulkSubmit.className = 'hr-btn-danger';
+        el.btnBulkSubmit.textContent = 'Ya, Tandai Tidak Lengkap';
+    }
+
+    openModal(el.modalBulk);
+}
+
+async function submitBulkVerifikasi() {
+    const ids = Array.from(state.selectedIds);
+    const aksi = state.selectedBulkAction;
+    const catatan = (el.inputBulkCatatan?.value || '').trim();
+
+    if (!ids.length || !aksi) return toast('Aksi bulk tidak valid.', 'error');
+    if (aksi === 'tandai_tidak_lengkap' && !catatan) return toast('Catatan kekurangan dokumen wajib diisi.', 'error');
+
+    const payload = { ids, aksi };
+    if (catatan) payload.catatan_dokumen = catatan;
+
+    try {
+        const json = await apiFetch('/api/hr/dokumen/bulk-verifikasi', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        if (!json.status) {
+            toast(json.message || 'Bulk verifikasi gagal.', 'error');
+            return;
+        }
+
+        const ok = Number(json.data?.total_success || 0);
+        const fail = Number(json.data?.total_failed || 0);
+        if (fail > 0) toast(`Sebagian berhasil: ${ok} sukses, ${fail} gagal.`, 'warning');
+        else toast(json.message || `${ok} pengajuan berhasil diverifikasi.`, 'success');
+
+        closeModal(el.modalBulk);
+        loadPengajuanIzin(state.page);
+    } catch (err) {
+        console.error('[HR Dokumen] submitBulkVerifikasi', err);
+        toast('Terjadi kesalahan saat bulk verifikasi.', 'error');
+    }
 }
 
 function konfirmasiVerifikasi(idIzin, aksi, namaKaryawan) {
@@ -395,10 +575,7 @@ async function submitVerifikasi() {
             body: JSON.stringify(payload)
         });
 
-        if (!json.status) {
-            toast(json.message || 'Verifikasi gagal.', 'error');
-            return;
-        }
+        if (!json.status) return toast(json.message || 'Verifikasi gagal.', 'error');
 
         toast(json.message || 'Verifikasi berhasil.', 'success');
         closeModal(el.modalVerifikasi);
@@ -413,10 +590,7 @@ async function submitVerifikasi() {
 async function lihatDetailIzin(idIzin) {
     try {
         const json = await apiFetch(`/api/hr/dokumen/${idIzin}`);
-        if (!json.status || !json.data) {
-            toast(json.message || 'Data izin tidak ditemukan.', 'error');
-            return;
-        }
+        if (!json.status || !json.data) return toast(json.message || 'Data izin tidak ditemukan.', 'error');
         renderModalDetail(json.data);
         openModal(el.modalDetail);
     } catch (err) {
@@ -439,6 +613,7 @@ function renderModalDetail(data) {
                 <tr><td style="padding:4px 0;color:#64748b;">Perusahaan</td><td style="padding:4px 0;">: ${esc(karyawan.perusahaan || '-')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Jenis Izin</td><td style="padding:4px 0;">: ${esc(jenisIzin.nama_jenis || '-')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Tanggal Izin</td><td style="padding:4px 0;">: ${formatTanggalRange(data.tanggal_izin, data.tanggal_selesai_izin)} (${data.jumlah_hari || 1} hari)</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Status Validasi Admin</td><td style="padding:4px 0;">: ${badgeStatusValidasiAdmin(data.status_validasi_admin || data.status || '')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Keterangan</td><td style="padding:4px 0;">: ${esc(data.keterangan || '-')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Status Dokumen</td><td style="padding:4px 0;">: ${badgeStatusDokumen(data.status_dokumen)}</td></tr>
             </table>
@@ -577,6 +752,16 @@ function badgeStatusDokumen(status) {
     return map[status] || `<span style="font-size:11px;color:#94a3b8;">${esc(status || '-')}</span>`;
 }
 
+function badgeStatusValidasiAdmin(status) {
+    if (status === 'disetujui') {
+        return '<span class="hr-badge-lengkap">Disetujui</span>';
+    }
+    if (status === 'ditolak') {
+        return '<span class="hr-badge-tidak-lengkap">Ditolak</span>';
+    }
+    return '<span class="hr-badge-belum-upload">Belum Divalidasi Admin</span>';
+}
+
 function esc(str) {
     const div = document.createElement('div');
     div.textContent = str == null ? '' : String(str);
@@ -599,7 +784,7 @@ function toast(message, type = 'success') {
 function showSkeleton() {
     el.tbody.innerHTML = `
         <tr class="table-skeleton">
-            <td colspan="9">
+            <td colspan="11">
                 <div class="skeleton-wrap">
                     <div class="skeleton-line"></div>
                     <div class="skeleton-line skeleton-line--medium"></div>

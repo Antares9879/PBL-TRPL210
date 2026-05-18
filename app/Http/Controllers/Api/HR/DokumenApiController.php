@@ -28,10 +28,16 @@ class DokumenApiController extends Controller
             'karyawan.perusahaan:id_perusahaan,nama_perusahaan',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen:id_dokumen,id_izin,nama_file,tipe_file,ukuran_kb,diunggah_pada',
-        ])
-            ->where('status', PengajuanIzin::STATUS_DISETUJUI);
+        ]);
 
         $this->applyDokumenVerifikasiScope($query);
+
+        if ($request->filled('status_validasi_admin')) {
+            $statusValidasi = $request->status_validasi_admin;
+            if (in_array($statusValidasi, [PengajuanIzin::STATUS_DISETUJUI, PengajuanIzin::STATUS_DITOLAK], true)) {
+                $query->where('status', $statusValidasi);
+            }
+        }
 
         if ($request->filled('status_dokumen')) {
             $query->where('status_dokumen', $request->status_dokumen);
@@ -93,8 +99,7 @@ class DokumenApiController extends Controller
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen,keterangan',
             'dokumen:id_dokumen,id_izin,nama_file,tipe_file,ukuran_kb,diunggah_pada',
             'validatorAdmin:id_pengguna,nama_lengkap',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI);
+        ]);
 
         $this->applyDokumenVerifikasiScope($izin);
 
@@ -131,8 +136,7 @@ class DokumenApiController extends Controller
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI);
+        ]);
 
         $this->applyDokumenVerifikasiScope($izin);
 
@@ -225,8 +229,7 @@ class DokumenApiController extends Controller
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI);
+        ]);
 
         $this->applyDokumenVerifikasiScope($izinMap);
 
@@ -326,7 +329,7 @@ class DokumenApiController extends Controller
 
     public function streamDokumen(int $id, int $docId): JsonResponse|StreamedResponse
     {
-        $izin = PengajuanIzin::where('status', PengajuanIzin::STATUS_DISETUJUI);
+        $izin = PengajuanIzin::query();
         $this->applyDokumenVerifikasiScope($izin);
         $izin = $izin->find($id);
 
@@ -429,6 +432,12 @@ class DokumenApiController extends Controller
                 'wajib_dokumen' => $i->jenisIzin->wajib_dokumen,
             ] : null,
             'status' => $i->status,
+            'status_validasi_admin' => $i->status,
+            'status_validasi_admin_label' => match ($i->status) {
+                PengajuanIzin::STATUS_DISETUJUI => 'Disetujui',
+                PengajuanIzin::STATUS_DITOLAK => 'Ditolak',
+                default => 'Belum Divalidasi Admin',
+            },
             'status_dokumen' => $i->status_dokumen,
             'catatan_dokumen' => $i->catatan_dokumen,
             'jumlah_dokumen' => $i->dokumen?->count() ?? 0,
