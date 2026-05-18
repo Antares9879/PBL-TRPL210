@@ -140,25 +140,6 @@
         <button class="hr-tab" data-status="belum_upload">Belum Upload</button>
     </div>
 
-    {{-- ── BULK ACTION BAR ────────────────────────────────────────────────── --}}
-    <div class="hr-bulk-action-bar">
-        <div class="hr-bulk-action-left">
-            <label class="hr-checkbox-label">
-                <input type="checkbox" id="select-all-checkbox" class="hr-checkbox">
-                <span>Pilih Semua</span>
-            </label>
-            <span id="selected-count" class="hr-selected-count" style="display:none;">0 dipilih</span>
-        </div>
-        <div class="hr-bulk-action-right" id="bulk-action-controls" style="display:none;">
-            <select id="bulk-action-select" class="hr-filter-select" style="width:200px;">
-                <option value="">Pilih Aksi...</option>
-                <option value="tandai_lengkap">Tandai Lengkap</option>
-                <option value="tandai_tidak_lengkap">Tandai Tidak Lengkap</option>
-            </select>
-            <button id="btn-bulk-action-go" class="hr-btn-primary" disabled>Terapkan</button>
-        </div>
-    </div>
-
     {{-- ── TABEL PENGAJUAN IZIN ───────────────────────────────────────────── --}}
     <div class="dash-panel dash-panel--full">
         <div class="dash-panel-body">
@@ -166,9 +147,6 @@
                 <table class="data-table" id="tabel-pengajuan-izin">
                     <thead>
                         <tr>
-                            <th style="width:40px;">
-                                <input type="checkbox" id="select-all-header" class="hr-checkbox">
-                            </th>
                             <th>Nama Karyawan</th>
                             <th>Departemen</th>
                             <th>Perusahaan</th>
@@ -182,7 +160,7 @@
                     </thead>
                     <tbody id="tbody-pengajuan-izin">
                         <tr class="table-skeleton">
-                            <td colspan="10">
+                            <td colspan="9">
                                 <div class="skeleton-wrap">
                                     <div class="skeleton-line"></div>
                                     <div class="skeleton-line skeleton-line--medium"></div>
@@ -198,26 +176,6 @@
     </div>
 
 </div>{{-- /dashboard-wrap --}}
-
-{{-- ══ MODAL KONFIRMASI BULK ACTION ═════════════════════════════════════════ --}}
-<div id="modal-bulk-konfirmasi" class="hr-modal" style="display:none;">
-    <div class="hr-modal-content">
-        <div class="hr-modal-header">
-            <h3 class="hr-modal-title" id="modal-bulk-title">Konfirmasi Bulk Action</h3>
-            <button class="hr-modal-close" onclick="document.getElementById('modal-bulk-konfirmasi').style.display='none'">×</button>
-        </div>
-        <div class="hr-modal-body">
-            <div id="modal-bulk-body">
-                <!-- Diisi oleh JS -->
-            </div>
-            <textarea id="input-bulk-catatan" class="hr-textarea" placeholder="Tuliskan kekurangan dokumen (wajib diisi)..." style="display:none;margin-top:12px;" rows="4"></textarea>
-        </div>
-        <div class="hr-modal-footer">
-            <button id="btn-bulk-batal" class="hr-btn-outline">Batal</button>
-            <button id="btn-bulk-submit" class="hr-btn-primary">Konfirmasi</button>
-        </div>
-    </div>
-</div>
 
 {{-- ══ MODAL DETAIL PENGAJUAN IZIN ══════════════════════════════════════════ --}}
 <div id="modal-detail-izin" class="hr-modal" style="display:none;">
@@ -275,3 +233,4 @@
 @push('scripts')
     @vite('resources/js/hr/dokumen.js')
 @endpush
+
