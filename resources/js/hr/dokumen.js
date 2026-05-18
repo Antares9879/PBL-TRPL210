@@ -1,6 +1,6 @@
 /**
  * resources/js/hr/dokumen.js
- * Verifikasi Dokumen Izin HR - Single Page + Bulk Action
+ * Verifikasi Dokumen Izin HR - Bulk Action + Detail Verifikasi
  */
 
 const state = {
@@ -10,6 +10,7 @@ const state = {
         tahun: '',
         jenisIzin: '',
         statusDokumen: '',
+        statusValidasiAdmin: '',
         perusahaan: '',
         departemen: '',
         search: ''
@@ -36,6 +37,7 @@ function cacheElements() {
     el.filterTahun = document.getElementById('filter-tahun');
     el.filterJenisIzin = document.getElementById('filter-jenis-izin');
     el.filterStatusDokumen = document.getElementById('filter-status-dokumen');
+    el.filterStatusValidasiAdmin = document.getElementById('filter-status-validasi-admin');
     el.filterPerusahaan = document.getElementById('filter-perusahaan');
     el.filterDepartemen = document.getElementById('filter-departemen');
     el.filterSearch = document.getElementById('filter-search');
@@ -140,6 +142,7 @@ async function loadPengajuanIzin(page = 1) {
     if (state.filters.tahun) params.set('tahun', state.filters.tahun);
     if (state.filters.jenisIzin) params.set('jenis_izin', state.filters.jenisIzin);
     if (state.filters.statusDokumen) params.set('status_dokumen', state.filters.statusDokumen);
+    if (state.filters.statusValidasiAdmin) params.set('status_validasi_admin', state.filters.statusValidasiAdmin);
     if (state.filters.perusahaan) params.set('id_perusahaan', state.filters.perusahaan);
     if (state.filters.departemen) params.set('id_departemen', state.filters.departemen);
     if (state.filters.search) params.set('search', state.filters.search);
@@ -169,7 +172,7 @@ function renderTabel(rows, meta) {
     if (!rows.length) {
         el.tbody.innerHTML = `
             <tr>
-                <td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">
+                <td colspan="11" style="text-align:center;padding:40px;color:#94a3b8;">
                     Tidak ada data pengajuan izin pada filter ini.
                 </td>
             </tr>
@@ -177,9 +180,7 @@ function renderTabel(rows, meta) {
         return;
     }
 
-    const startNo = ((meta?.current_page || 1) - 1) * (meta?.per_page || 20);
-
-    el.tbody.innerHTML = rows.map((row, idx) => {
+    el.tbody.innerHTML = rows.map((row) => {
         const id = Number(row.id_izin);
         const checked = state.selectedIds.has(id) ? 'checked' : '';
         const selectedClass = state.selectedIds.has(id) ? 'hr-row-selected' : '';
@@ -193,35 +194,27 @@ function renderTabel(rows, meta) {
                     <input type="checkbox" class="hr-checkbox row-checkbox" data-id="${id}" ${checked}>
                 </td>
                 <td>
-                    <div style="font-weight:500;color:#0f172a;">${esc(karyawan.nama_lengkap || '—')}</div>
+                    <div style="font-weight:500;color:#0f172a;">${esc(karyawan.nama_lengkap || '-')}</div>
                     <div style="font-size:11px;color:#94a3b8;">${esc(karyawan.nomor_karyawan || '')}</div>
                 </td>
-                <td style="font-size:12px;">${esc(karyawan.departemen || '—')}</td>
-                <td style="font-size:12px;">${esc(karyawan.perusahaan || '—')}</td>
-                <td style="font-size:12px;">${esc(jenisIzin.nama_jenis || '—')}</td>
+                <td style="font-size:12px;">${esc(karyawan.departemen || '-')}</td>
+                <td style="font-size:12px;">${esc(karyawan.perusahaan || '-')}</td>
+                <td style="font-size:12px;">${esc(jenisIzin.nama_jenis || '-')}</td>
                 <td style="font-size:12px;">${formatTanggalRange(row.tanggal_izin, row.tanggal_selesai_izin)}</td>
                 <td style="text-align:center;">${row.jumlah_hari || 1}</td>
                 <td style="text-align:center;">
                     <button class="hr-btn-sm hr-btn-outline btn-lihat-detail-izin" data-id="${id}">${jumlahDokumen} file</button>
                 </td>
+                <td>${badgeStatusValidasiAdmin(row.status_validasi_admin || row.status || '')}</td>
                 <td>${badgeStatusDokumen(row.status_dokumen || '')}</td>
                 <td>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                        <button class="hr-btn-sm hr-btn-outline btn-lihat-detail-izin" data-id="${id}">Lihat Detail</button>
-                        ${renderAksiButton(row)}
-                    </div>
+                    <button class="hr-btn-sm hr-btn-primary btn-verifikasi" data-id="${id}">
+                        Verifikasi
+                    </button>
                 </td>
             </tr>
         `;
     }).join('');
-}
-
-function renderAksiButton(row) {
-    const nama = row.karyawan?.nama_lengkap || '';
-    if (row.status_dokumen === 'lengkap') {
-        return `<button class="hr-btn-sm hr-btn-danger btn-tandai-tidak-lengkap" data-id="${row.id_izin}" data-nama="${esc(nama)}">Tandai Tidak Lengkap</button>`;
-    }
-    return `<button class="hr-btn-sm hr-btn-primary btn-tandai-lengkap" data-id="${row.id_izin}" data-nama="${esc(nama)}">Tandai Lengkap</button>`;
 }
 
 function renderPaginasi(meta) {
@@ -261,6 +254,7 @@ function bindEvents() {
         state.filters.tahun = el.filterTahun?.value || '';
         state.filters.jenisIzin = el.filterJenisIzin?.value || '';
         state.filters.statusDokumen = el.filterStatusDokumen?.value || '';
+        state.filters.statusValidasiAdmin = el.filterStatusValidasiAdmin?.value || '';
         state.filters.perusahaan = el.filterPerusahaan?.value || '';
         state.filters.departemen = el.filterDepartemen?.value || '';
         state.filters.search = (el.filterSearch?.value || '').trim();
@@ -274,12 +268,14 @@ function bindEvents() {
 
         state.filters.jenisIzin = '';
         state.filters.statusDokumen = '';
+        state.filters.statusValidasiAdmin = '';
         state.filters.perusahaan = '';
         state.filters.departemen = '';
         state.filters.search = '';
 
         if (el.filterJenisIzin) el.filterJenisIzin.value = '';
         if (el.filterStatusDokumen) el.filterStatusDokumen.value = '';
+        if (el.filterStatusValidasiAdmin) el.filterStatusValidasiAdmin.value = '';
         if (el.filterPerusahaan) el.filterPerusahaan.value = '';
         if (el.filterDepartemen) el.filterDepartemen.value = '';
         if (el.filterSearch) el.filterSearch.value = '';
@@ -346,6 +342,13 @@ function bindEvents() {
     el.btnBulkSubmit?.addEventListener('click', submitBulkVerifikasi);
 
     document.addEventListener('click', (e) => {
+        const verifBtn = e.target.closest('.btn-verifikasi');
+        if (verifBtn) {
+            const id = Number(verifBtn.dataset.id);
+            if (id) lihatDetailIzin(id);
+            return;
+        }
+
         const detailBtn = e.target.closest('.btn-lihat-detail-izin');
         if (detailBtn) {
             const id = Number(detailBtn.dataset.id);
@@ -362,6 +365,12 @@ function bindEvents() {
         const btnTidakLengkap = e.target.closest('.btn-tandai-tidak-lengkap, .btn-tandai-tidak-lengkap-modal');
         if (btnTidakLengkap) {
             konfirmasiVerifikasi(Number(btnTidakLengkap.dataset.id), 'tandai_tidak_lengkap', btnTidakLengkap.dataset.nama || '');
+            return;
+        }
+
+        const btnBatalDetail = e.target.closest('.btn-batal-detail-modal');
+        if (btnBatalDetail) {
+            closeModal(el.modalDetail);
             return;
         }
 
@@ -469,7 +478,7 @@ function openBulkModal() {
             <p style="color:#64748b;font-size:13px;margin-bottom:12px;">
                 Tandai <strong style="color:#0f172a;">${ids.length} pengajuan</strong> sebagai <strong style="color:#ef4444;">Tidak Lengkap</strong>?
             </p>
-            <p style="color:#ef4444;font-size:12px;margin:0;">Admin Outsource akan menerima notifikasi untuk setiap pengajuan yang diperbarui.</p>
+            <p style="color:#ef4444;font-size:12px;margin:0;">Karyawan terkait akan menerima notifikasi terkait kekurangan dokumen.</p>
         `;
         el.inputBulkCatatan.style.display = 'block';
         el.inputBulkCatatan.value = '';
@@ -485,14 +494,8 @@ async function submitBulkVerifikasi() {
     const aksi = state.selectedBulkAction;
     const catatan = (el.inputBulkCatatan?.value || '').trim();
 
-    if (!ids.length || !aksi) {
-        toast('Aksi bulk tidak valid.', 'error');
-        return;
-    }
-    if (aksi === 'tandai_tidak_lengkap' && !catatan) {
-        toast('Catatan kekurangan dokumen wajib diisi.', 'error');
-        return;
-    }
+    if (!ids.length || !aksi) return toast('Aksi bulk tidak valid.', 'error');
+    if (aksi === 'tandai_tidak_lengkap' && !catatan) return toast('Catatan kekurangan dokumen wajib diisi.', 'error');
 
     const payload = { ids, aksi };
     if (catatan) payload.catatan_dokumen = catatan;
@@ -510,11 +513,8 @@ async function submitBulkVerifikasi() {
 
         const ok = Number(json.data?.total_success || 0);
         const fail = Number(json.data?.total_failed || 0);
-        if (fail > 0) {
-            toast(`Sebagian berhasil: ${ok} sukses, ${fail} gagal.`, 'warning');
-        } else {
-            toast(json.message || `${ok} pengajuan berhasil diverifikasi.`, 'success');
-        }
+        if (fail > 0) toast(`Sebagian berhasil: ${ok} sukses, ${fail} gagal.`, 'warning');
+        else toast(json.message || `${ok} pengajuan berhasil diverifikasi.`, 'success');
 
         closeModal(el.modalBulk);
         loadPengajuanIzin(state.page);
@@ -526,6 +526,7 @@ async function submitBulkVerifikasi() {
 
 function konfirmasiVerifikasi(idIzin, aksi, namaKaryawan) {
     if (!idIzin || !aksi) return;
+
     state.selectedIzinId = idIzin;
     state.selectedAksi = aksi;
 
@@ -546,7 +547,7 @@ function konfirmasiVerifikasi(idIzin, aksi, namaKaryawan) {
             <p style="color:#64748b;font-size:13px;margin-bottom:12px;">
                 Tandai dokumen pengajuan izin <strong style="color:#0f172a;">${esc(namaKaryawan)}</strong> sebagai <strong style="color:#ef4444;">Tidak Lengkap</strong>?
             </p>
-            <p style="color:#ef4444;font-size:12px;margin:0;">Admin Outsource akan menerima notifikasi terkait kekurangan dokumen.</p>
+            <p style="color:#ef4444;font-size:12px;margin:0;">Karyawan terkait akan menerima notifikasi terkait kekurangan dokumen.</p>
         `;
         el.inputCatatanDokumen.style.display = 'block';
         el.inputCatatanDokumen.value = '';
@@ -574,10 +575,7 @@ async function submitVerifikasi() {
             body: JSON.stringify(payload)
         });
 
-        if (!json.status) {
-            toast(json.message || 'Verifikasi gagal.', 'error');
-            return;
-        }
+        if (!json.status) return toast(json.message || 'Verifikasi gagal.', 'error');
 
         toast(json.message || 'Verifikasi berhasil.', 'success');
         closeModal(el.modalVerifikasi);
@@ -592,10 +590,7 @@ async function submitVerifikasi() {
 async function lihatDetailIzin(idIzin) {
     try {
         const json = await apiFetch(`/api/hr/dokumen/${idIzin}`);
-        if (!json.status || !json.data) {
-            toast(json.message || 'Data izin tidak ditemukan.', 'error');
-            return;
-        }
+        if (!json.status || !json.data) return toast(json.message || 'Data izin tidak ditemukan.', 'error');
         renderModalDetail(json.data);
         openModal(el.modalDetail);
     } catch (err) {
@@ -612,13 +607,14 @@ function renderModalDetail(data) {
     let html = `
         <div style="background:#f8fafc;padding:16px;border-radius:8px;margin-bottom:16px;">
             <table style="width:100%;font-size:13px;">
-                <tr><td style="padding:4px 0;color:#64748b;width:180px;">Nama Karyawan</td><td style="padding:4px 0;font-weight:500;">: ${esc(karyawan.nama_lengkap || '—')}</td></tr>
-                <tr><td style="padding:4px 0;color:#64748b;">NIK/No Karyawan</td><td style="padding:4px 0;">: ${esc(karyawan.nomor_karyawan || '—')}</td></tr>
-                <tr><td style="padding:4px 0;color:#64748b;">Departemen</td><td style="padding:4px 0;">: ${esc(karyawan.departemen || '—')}</td></tr>
-                <tr><td style="padding:4px 0;color:#64748b;">Perusahaan</td><td style="padding:4px 0;">: ${esc(karyawan.perusahaan || '—')}</td></tr>
-                <tr><td style="padding:4px 0;color:#64748b;">Jenis Izin</td><td style="padding:4px 0;">: ${esc(jenisIzin.nama_jenis || '—')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;width:180px;">Nama Karyawan</td><td style="padding:4px 0;font-weight:500;">: ${esc(karyawan.nama_lengkap || '-')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">NIK/No Karyawan</td><td style="padding:4px 0;">: ${esc(karyawan.nomor_karyawan || '-')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Departemen</td><td style="padding:4px 0;">: ${esc(karyawan.departemen || '-')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Perusahaan</td><td style="padding:4px 0;">: ${esc(karyawan.perusahaan || '-')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Jenis Izin</td><td style="padding:4px 0;">: ${esc(jenisIzin.nama_jenis || '-')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Tanggal Izin</td><td style="padding:4px 0;">: ${formatTanggalRange(data.tanggal_izin, data.tanggal_selesai_izin)} (${data.jumlah_hari || 1} hari)</td></tr>
-                <tr><td style="padding:4px 0;color:#64748b;">Keterangan</td><td style="padding:4px 0;">: ${esc(data.keterangan || '—')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Status Validasi Admin</td><td style="padding:4px 0;">: ${badgeStatusValidasiAdmin(data.status_validasi_admin || data.status || '')}</td></tr>
+                <tr><td style="padding:4px 0;color:#64748b;">Keterangan</td><td style="padding:4px 0;">: ${esc(data.keterangan || '-')}</td></tr>
                 <tr><td style="padding:4px 0;color:#64748b;">Status Dokumen</td><td style="padding:4px 0;">: ${badgeStatusDokumen(data.status_dokumen)}</td></tr>
             </table>
         </div>
@@ -656,10 +652,9 @@ function renderModalDetail(data) {
         <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f1f5f9;">
             <p style="font-size:12px;color:#64748b;margin:0 0 12px;">Status Dokumen saat ini: ${badgeStatusDokumen(data.status_dokumen)}</p>
             <div style="display:flex;gap:8px;justify-content:flex-end;">
-                ${data.status_dokumen === 'lengkap'
-                    ? `<button class="hr-btn-danger btn-tandai-tidak-lengkap-modal" data-id="${data.id_izin}" data-nama="${esc(karyawan.nama_lengkap || '')}">Tandai Tidak Lengkap</button>`
-                    : `<button class="hr-btn-primary btn-tandai-lengkap-modal" data-id="${data.id_izin}" data-nama="${esc(karyawan.nama_lengkap || '')}">Tandai Lengkap</button>`
-                }
+                <button class="hr-btn-outline btn-batal-detail-modal">Batal</button>
+                <button class="hr-btn-danger btn-tandai-tidak-lengkap-modal" data-id="${data.id_izin}" data-nama="${esc(karyawan.nama_lengkap || '')}">Tandai Tidak Lengkap</button>
+                <button class="hr-btn-primary btn-tandai-lengkap-modal" data-id="${data.id_izin}" data-nama="${esc(karyawan.nama_lengkap || '')}">Tandai Lengkap</button>
             </div>
         </div>
     `;
@@ -726,9 +721,9 @@ async function apiFetch(url, options = {}) {
 }
 
 function formatTanggal(tgl) {
-    if (!tgl) return '—';
+    if (!tgl) return '-';
     const d = new Date(tgl);
-    if (Number.isNaN(d.getTime())) return '—';
+    if (Number.isNaN(d.getTime())) return '-';
     return `${d.getDate()} ${BULAN_LABEL[d.getMonth()]} ${d.getFullYear()}`;
 }
 
@@ -739,9 +734,9 @@ function formatTanggalRange(mulai, selesai) {
 }
 
 function formatTanggalWaktu(tgl) {
-    if (!tgl) return '—';
+    if (!tgl) return '-';
     const d = new Date(tgl);
-    if (Number.isNaN(d.getTime())) return '—';
+    if (Number.isNaN(d.getTime())) return '-';
     const hh = String(d.getHours()).padStart(2, '0');
     const mm = String(d.getMinutes()).padStart(2, '0');
     return `${d.getDate()} ${BULAN_LABEL[d.getMonth()]} ${d.getFullYear()} ${hh}:${mm}`;
@@ -754,7 +749,17 @@ function badgeStatusDokumen(status) {
         sudah_upload: '<span class="hr-badge-sudah-upload">Belum Diverifikasi</span>',
         belum_upload: '<span class="hr-badge-belum-upload">Belum Upload</span>'
     };
-    return map[status] || `<span style="font-size:11px;color:#94a3b8;">${esc(status || '—')}</span>`;
+    return map[status] || `<span style="font-size:11px;color:#94a3b8;">${esc(status || '-')}</span>`;
+}
+
+function badgeStatusValidasiAdmin(status) {
+    if (status === 'disetujui') {
+        return '<span class="hr-badge-lengkap">Disetujui</span>';
+    }
+    if (status === 'ditolak') {
+        return '<span class="hr-badge-tidak-lengkap">Ditolak</span>';
+    }
+    return '<span class="hr-badge-belum-upload">Belum Divalidasi Admin</span>';
 }
 
 function esc(str) {
@@ -779,7 +784,7 @@ function toast(message, type = 'success') {
 function showSkeleton() {
     el.tbody.innerHTML = `
         <tr class="table-skeleton">
-            <td colspan="10">
+            <td colspan="11">
                 <div class="skeleton-wrap">
                     <div class="skeleton-line"></div>
                     <div class="skeleton-line skeleton-line--medium"></div>

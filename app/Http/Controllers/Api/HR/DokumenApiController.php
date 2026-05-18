@@ -28,7 +28,16 @@ class DokumenApiController extends Controller
             'karyawan.perusahaan:id_perusahaan,nama_perusahaan',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen:id_dokumen,id_izin,nama_file,tipe_file,ukuran_kb,diunggah_pada',
-        ])->where('status', PengajuanIzin::STATUS_DISETUJUI);
+        ]);
+
+        $this->applyDokumenVerifikasiScope($query);
+
+        if ($request->filled('status_validasi_admin')) {
+            $statusValidasi = $request->status_validasi_admin;
+            if (in_array($statusValidasi, [PengajuanIzin::STATUS_DISETUJUI, PengajuanIzin::STATUS_DITOLAK], true)) {
+                $query->where('status', $statusValidasi);
+            }
+        }
 
         if ($request->filled('status_dokumen')) {
             $query->where('status_dokumen', $request->status_dokumen);
@@ -90,8 +99,11 @@ class DokumenApiController extends Controller
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen,keterangan',
             'dokumen:id_dokumen,id_izin,nama_file,tipe_file,ukuran_kb,diunggah_pada',
             'validatorAdmin:id_pengguna,nama_lengkap',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI)
+        ]);
+
+        $this->applyDokumenVerifikasiScope($izin);
+
+        $izin = $izin
         ->find($id);
 
         if (! $izin) {
@@ -122,11 +134,13 @@ class DokumenApiController extends Controller
 
         $izin = PengajuanIzin::with([
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
-            'karyawan.perusahaan.adminProfiles.pengguna:id_pengguna',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI)
+        ]);
+
+        $this->applyDokumenVerifikasiScope($izin);
+
+        $izin = $izin
         ->find($id);
 
         if (! $izin) {
@@ -166,7 +180,7 @@ class DokumenApiController extends Controller
             ]);
 
             $this->notifikasiDokumenTidakLengkap($izin, $hr->id_pengguna);
-            $pesan = "Dokumen pengajuan izin {$izin->karyawan->nama_lengkap} ditandai Tidak Lengkap. Admin Outsource telah dinotifikasi.";
+            $pesan = "Dokumen pengajuan izin {$izin->karyawan->nama_lengkap} ditandai Tidak Lengkap. Karyawan terkait telah dinotifikasi.";
         }
 
         AuditLogService::catat(
@@ -213,11 +227,13 @@ class DokumenApiController extends Controller
 
         $izinMap = PengajuanIzin::with([
             'karyawan:id_karyawan,nama_lengkap,id_pengguna,id_perusahaan',
-            'karyawan.perusahaan.adminProfiles.pengguna:id_pengguna',
             'jenisIzin:id_jenis_izin,nama_jenis,wajib_dokumen',
             'dokumen',
-        ])
-        ->where('status', PengajuanIzin::STATUS_DISETUJUI)
+        ]);
+
+        $this->applyDokumenVerifikasiScope($izinMap);
+
+        $izinMap = $izinMap
         ->whereIn('id_izin', $ids)
         ->get()
         ->keyBy('id_izin');
@@ -313,7 +329,9 @@ class DokumenApiController extends Controller
 
     public function streamDokumen(int $id, int $docId): JsonResponse|StreamedResponse
     {
-        $izin = PengajuanIzin::where('status', PengajuanIzin::STATUS_DISETUJUI)->find($id);
+        $izin = PengajuanIzin::query();
+        $this->applyDokumenVerifikasiScope($izin);
+        $izin = $izin->find($id);
 
         if (! $izin) {
             return response()->json([
@@ -358,23 +376,37 @@ class DokumenApiController extends Controller
 
     private function notifikasiDokumenTidakLengkap(PengajuanIzin $izin, int $idPengirim): void
     {
-        $adminList = $izin->karyawan->perusahaan
-            ->adminProfiles()
-            ->with('pengguna:id_pengguna')
-            ->get()
-            ->pluck('pengguna.id_pengguna');
-
-        foreach ($adminList as $idAdmin) {
-            NotifikasiService::kirim(
-                idPenerima: $idAdmin,
-                judul: "Dokumen izin {$izin->karyawan->nama_lengkap} belum lengkap",
-                isi: "HR menemukan kekurangan dokumen pada pengajuan izin {$izin->karyawan->nama_lengkap}"
-                    . ($izin->catatan_dokumen ? ". Catatan: {$izin->catatan_dokumen}" : '.'),
-                jenis: Notifikasi::JENIS_IZIN,
-                idPengirim: $idPengirim,
-                idReferensi: $izin->id_izin,
-            );
+        $idKaryawanPengguna = $izin->karyawan?->id_pengguna;
+        if (! $idKaryawanPengguna) {
+            return;
         }
+
+        NotifikasiService::kirim(
+            idPenerima: $idKaryawanPengguna,
+            judul: "Dokumen izin Anda belum lengkap",
+            isi: "HR menemukan kekurangan dokumen pada pengajuan izin Anda"
+                . ($izin->catatan_dokumen ? ". Catatan: {$izin->catatan_dokumen}" : '.'),
+            jenis: Notifikasi::JENIS_IZIN,
+            idPengirim: $idPengirim,
+            idReferensi: $izin->id_izin,
+        );
+    }
+
+    /**
+     * Scope dokumen untuk modul verifikasi HR:
+     * - Jenis izin tidak wajib dokumen: tetap ditampilkan.
+     * - Jenis izin wajib dokumen: ditampilkan jika sudah ada file dokumen,
+     *   termasuk setelah status berubah menjadi lengkap/tidak_lengkap.
+     */
+    private function applyDokumenVerifikasiScope($query): void
+    {
+        $query->where(function ($q) {
+            $q->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', false))
+                ->orWhere(function ($wajib) {
+                    $wajib->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', true))
+                        ->whereHas('dokumen');
+                });
+        });
     }
 
     private function formatIzin(PengajuanIzin $i, bool $detail = false): array
@@ -400,6 +432,12 @@ class DokumenApiController extends Controller
                 'wajib_dokumen' => $i->jenisIzin->wajib_dokumen,
             ] : null,
             'status' => $i->status,
+            'status_validasi_admin' => $i->status,
+            'status_validasi_admin_label' => match ($i->status) {
+                PengajuanIzin::STATUS_DISETUJUI => 'Disetujui',
+                PengajuanIzin::STATUS_DITOLAK => 'Ditolak',
+                default => 'Belum Divalidasi Admin',
+            },
             'status_dokumen' => $i->status_dokumen,
             'catatan_dokumen' => $i->catatan_dokumen,
             'jumlah_dokumen' => $i->dokumen?->count() ?? 0,
