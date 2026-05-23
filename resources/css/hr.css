@@ -936,7 +936,286 @@
     box-shadow: 0 0 0 3px rgba(26, 110, 26, 0.12);
 }
 
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
+/* ─── Kartu bulan rekap (Halaman A) ───────────────────────────────────────── */
+.hr-grid-kartu-bulan {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.hr-kartu-bulan-rekap {
+    position: relative;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 14px;
+    padding: 20px;
+    min-height: 200px;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.hr-kartu-bulan-rekap:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+}
+
+.hr-kartu-bulan-rekap.belum-terjadi {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.hr-kartu-bulan-header {
+    margin-bottom: 12px;
+}
+
+.hr-kartu-bulan-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.hr-kartu-bulan-status {
+    margin-bottom: 8px;
+}
+
+.hr-kartu-bulan-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* Loading overlay di dalam kartu */
+.hr-kartu-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    z-index: 10;
+}
+
+.hr-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--hr-hijau-bg);
+    border-top-color: var(--hr-hijau-utama);
+    border-radius: 50%;
+    animation: hr-spin 0.8s linear infinite;
+}
+
+@keyframes hr-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Badge status progresif bulan */
+.hr-badge-belum-generate {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.hr-badge-ada-draft {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DBEAFE;
+    color: #1E3A5F;
+}
+
+.hr-badge-selesai {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+}
+
+/* Ringkasan angka di kartu bulan */
+.hr-ringkasan-angka {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    margin-top: 6px;
+    line-height: 1.6;
+}
+
+/* Badge status rekap di tabel */
+.hr-badge-belum-generate-tabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #E5E7EB;
+    color: #374151;
+}
+
+.hr-badge-draft-tabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DBEAFE;
+    color: #1E3A5F;
+}
+
+.hr-badge-final-tabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+}
+
+/* Baris tabel per status */
+.hr-baris-final {
+    background: #F0FDF4 !important;
+}
+
+.hr-baris-draft {
+    background: #EFF6FF !important;
+}
+
+/* Panel aksi atas (Halaman B) */
+.hr-panel-aksi-atas {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+/* Bulk action bar sticky */
+.hr-bulk-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--hr-hijau-tua);
+    color: white;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 100;
+    border-top: 2px solid var(--hr-hijau-muda);
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+}
+
+.hr-bulk-action-bar button {
+    color: white;
+    border-color: rgba(255,255,255,0.3);
+}
+
+.hr-bulk-action-bar button:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Tombol warning */
+.hr-btn-warning {
+    background: #D97706;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s;
+}
+
+.hr-btn-warning:hover {
+    background: #B45309;
+}
+
+/* Progress bar modal bulk */
+.hr-progress-modal {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--hr-hijau-bg);
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.hr-progress-modal-fill {
+    height: 100%;
+    background: var(--hr-hijau-utama);
+    transition: width 0.3s ease;
+}
+
+/* Dua kolom data rekap di modal detail */
+.hr-rekap-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.hr-rekap-detail-section {
+    background: var(--hr-hijau-bg);
+    border-radius: 8px;
+    padding: 14px;
+}
+
+.hr-rekap-detail-section h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--hr-hijau-tua);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hr-rekap-detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    border-bottom: 0.5px solid var(--hr-hijau-border);
+}
+
+.hr-rekap-detail-row:last-child {
+    border-bottom: none;
+}
+
+.hr-rekap-detail-row .label {
+    color: #64748b;
+}
+
+.hr-rekap-detail-row .value {
+    font-weight: 500;
+    color: #0f172a;
+}
+
+/* Responsive ───────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .hr-kartu-bulan-actions {
         flex-direction: column;
@@ -965,5 +1244,21 @@
     .hr-bulk-action-right .hr-filter-select,
     .hr-bulk-action-right .hr-btn-primary {
         width: 100%;
+    }
+
+    .hr-grid-kartu-bulan {
+        grid-template-columns: 1fr;
+    }
+
+    .hr-panel-aksi-atas {
+        flex-direction: column;
+    }
+
+    .hr-panel-aksi-atas button {
+        width: 100%;
+    }
+
+    .hr-rekap-detail-grid {
+        grid-template-columns: 1fr;
     }
 }

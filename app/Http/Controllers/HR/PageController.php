@@ -33,11 +33,19 @@ class PageController extends Controller
     }
 
     /**
-     * F15 — Rekap Absensi Bulanan
+     * F15 — Rekap Absensi Bulanan (Halaman A — Daftar Per Bulan)
      */
     public function rekap(): View
     {
         return view('hr.rekap');
+    }
+
+    /**
+     * F15 — Rekap Absensi Bulanan (Halaman B — Detail Per Bulan)
+     */
+    public function rekapDetail(): View
+    {
+        return view('hr.rekap-detail');
     }
 
     /**
