@@ -60,7 +60,7 @@ class RekapApiController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = RekapBulanan::with([
-            'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,id_departemen,id_perusahaan',
+            'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,posisi,id_departemen,id_perusahaan',
             'karyawan.departemen:id_departemen,nama_departemen',
             'karyawan.perusahaan:id_perusahaan,nama_perusahaan',
             'pembuat:id_pengguna,nama_lengkap',
@@ -231,7 +231,7 @@ class RekapApiController extends Controller
         $hr    = Auth::user();
         $force = $request->boolean('force', false);
 
-        $rekap = RekapBulanan::with('karyawan:id_karyawan,nama_lengkap,id_departemen,id_perusahaan')
+        $rekap = RekapBulanan::with('karyawan:id_karyawan,nama_lengkap,posisi,id_departemen,id_perusahaan')
             ->find($id);
 
         if (! $rekap) {
@@ -290,7 +290,7 @@ class RekapApiController extends Controller
             'status'  => true,
             'message' => "Rekap {$rekap->karyawan?->nama_lengkap} berhasil ditetapkan sebagai Final.",
             'data'    => $this->formatRekap($rekap->fresh()->load([
-                'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,id_departemen,id_perusahaan',
+                'karyawan:id_karyawan,nama_lengkap,nomor_karyawan,posisi,id_departemen,id_perusahaan',
                 'karyawan.departemen:id_departemen,nama_departemen',
                 'karyawan.perusahaan:id_perusahaan,nama_perusahaan',
                 'pembuat:id_pengguna,nama_lengkap',
@@ -566,6 +566,7 @@ class RekapApiController extends Controller
                 'id_karyawan'    => $r->karyawan->id_karyawan,
                 'nama_lengkap'   => $r->karyawan->nama_lengkap,
                 'nomor_karyawan' => $r->karyawan->nomor_karyawan,
+                'posisi'         => $r->karyawan->posisi,
                 'departemen'     => $r->karyawan->departemen?->nama_departemen,
                 'perusahaan'     => $r->karyawan->perusahaan?->nama_perusahaan,
             ] : null,

@@ -44,10 +44,11 @@ Route::middleware('auth')->group(function () {
         ->prefix('hr')
         ->name('hr.')
         ->group(function () {
-            Route::get('dashboard', [HRPageController::class, 'dashboard'])->name('dashboard');
-            Route::get('dokumen',   [HRPageController::class, 'dokumen'])  ->name('dokumen');
-            Route::get('rekap',     [HRPageController::class, 'rekap'])    ->name('rekap');
-            Route::get('audit',     [HRPageController::class, 'audit'])    ->name('audit');
+            Route::get('dashboard',     [HRPageController::class, 'dashboard'])   ->name('dashboard');
+            Route::get('dokumen',       [HRPageController::class, 'dokumen'])     ->name('dokumen');
+            Route::get('rekap',         [HRPageController::class, 'rekap'])       ->name('rekap');
+            Route::get('rekap/detail',  [HRPageController::class, 'rekapDetail']) ->name('rekap.detail');
+            Route::get('audit',         [HRPageController::class, 'audit'])       ->name('audit');
         });
 
     // ── User Departemen (F12 + Dashboard Monitoring) ──────────────────────────
