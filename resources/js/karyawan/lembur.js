@@ -20,7 +20,6 @@
 import {
     apiFetch,
     toast,
-    formatTime,
     formatDate,
     formatMinutes,
     getBadgeHtml,
@@ -97,8 +96,14 @@ function bindForm() {
 
     // Preview menit estimasi saat jam berubah
     const updatePreview = debounce(updateMenitPreview, 300);
-    jamMulaiInput?.addEventListener('input', updatePreview);
-    jamSelesai?.addEventListener('input',    updatePreview);
+    jamMulaiInput?.addEventListener('input', () => {
+        hideAutoFillIndicator();
+        updatePreview();
+    });
+    jamSelesai?.addEventListener('input', () => {
+        hideAutoFillIndicator();
+        updatePreview();
+    });
 
     // Counter karakter alasan
     alasanInput?.addEventListener('input', () => {
@@ -166,6 +171,7 @@ function renderAbsensiInfo(absensi) {
     if (!infoEl) return;
 
     if (!absensi || !absensi.waktu_check_out) {
+        applyAutoFillJamLembur(null);
         infoEl.style.display = 'none';
         showFormAlert(
             'Tidak ditemukan data absensi check-out pada tanggal ini. Pastikan Anda sudah check-out terlebih dahulu.',
@@ -179,11 +185,12 @@ function renderAbsensiInfo(absensi) {
 
     // Tampilkan info absensi
     infoEl.style.display = '';
-    if (checkin)  checkin.textContent  = formatTime(absensi.waktu_check_in);
-    if (checkout) checkout.textContent = formatTime(absensi.waktu_check_out);
+    if (checkin)  checkin.textContent  = formatJam24(absensi.waktu_check_in);
+    if (checkout) checkout.textContent = formatJam24(absensi.waktu_check_out);
     if (menit) {
         menit.textContent = kelebihan > 0 ? formatMinutes(kelebihan) : '0 mnt (tidak ada kelebihan)';
     }
+    applyAutoFillJamLembur(absensi);
 
     // Tampilkan warning jika kelebihan < 60 menit
     if (kelebihan > 0 && kelebihan < MINIMUM_MENIT) {
@@ -201,6 +208,64 @@ function renderAbsensiInfo(absensi) {
     }
 }
 
+function applyAutoFillJamLembur(absensi) {
+    const jamMulaiInput   = document.getElementById('lembur-jam-mulai');
+    const jamSelesaiInput = document.getElementById('lembur-jam-selesai');
+    const previewEl       = document.getElementById('lembur-preview-menit');
+    const indicatorEl     = document.getElementById('lembur-autofill-indicator');
+    const jamMulai        = normalizeJamValue(absensi?.shift?.jam_pulang);
+    const jamSelesai      = normalizeJamValue(absensi?.waktu_check_out);
+
+    if (!jamMulaiInput || !jamSelesaiInput) return;
+
+    if (!absensi) {
+        jamMulaiInput.value = '';
+        jamSelesaiInput.value = '';
+        if (previewEl) previewEl.style.display = 'none';
+        if (indicatorEl) indicatorEl.style.display = 'none';
+        return;
+    }
+
+    jamMulaiInput.value = '';
+    jamSelesaiInput.value = '';
+
+    if (jamMulai) jamMulaiInput.value = jamMulai;
+    if (jamSelesai) jamSelesaiInput.value = jamSelesai;
+
+    if (jamMulaiInput.value && jamSelesaiInput.value) {
+        updateMenitPreview();
+    }
+    if (indicatorEl) {
+        indicatorEl.textContent =
+            `Jam lembur terisi otomatis dari absensi: mulai ${jamMulaiInput.value} (jam pulang shift), ` +
+            `selesai ${jamSelesaiInput.value} (jam check-out).`;
+        indicatorEl.style.display = '';
+    }
+}
+
+function normalizeJamValue(jam) {
+    if (typeof jam !== 'string' || jam.trim() === '') return '';
+    const trimmed = jam.trim();
+    if (/^([01]\d|2[0-3]):([0-5]\d)(:\d{2})?$/.test(trimmed)) {
+        return trimmed.slice(0, 5);
+    }
+
+    const d = new Date(trimmed);
+    if (!isNaN(d)) {
+        return d.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+        });
+    }
+
+    return '';
+}
+
+function formatJam24(jam) {
+    return normalizeJamValue(jam) || '—';
+}
+
 function updateMenitPreview() {
     const mulaiVal   = document.getElementById('lembur-jam-mulai')?.value;
     const selesaiVal = document.getElementById('lembur-jam-selesai')?.value;
@@ -208,6 +273,10 @@ function updateMenitPreview() {
     const angkaEl    = document.getElementById('lembur-preview-angka');
 
     if (!mulaiVal || !selesaiVal || !previewEl || !angkaEl) return;
+    if (!isJam24(mulaiVal) || !isJam24(selesaiVal)) {
+        previewEl.style.display = 'none';
+        return;
+    }
 
     const base   = new Date('2000-01-01T00:00:00');
     let mulai    = new Date(`2000-01-01T${mulaiVal}:00`);
@@ -287,9 +356,15 @@ function validateLemburForm(data) {
     if (!data.jam_mulai_estimasi) {
         showFieldError('err-lembur-jam-mulai', 'Jam mulai wajib diisi.');
         valid = false;
+    } else if (!isJam24(data.jam_mulai_estimasi)) {
+        showFieldError('err-lembur-jam-mulai', 'Format jam mulai harus 24 jam (HH:mm).');
+        valid = false;
     }
     if (!data.jam_selesai_estimasi) {
         showFieldError('err-lembur-jam-selesai', 'Jam selesai wajib diisi.');
+        valid = false;
+    } else if (!isJam24(data.jam_selesai_estimasi)) {
+        showFieldError('err-lembur-jam-selesai', 'Format jam selesai harus 24 jam (HH:mm).');
         valid = false;
     }
     if (!data.alasan_lembur || data.alasan_lembur.length < 10) {
@@ -449,8 +524,14 @@ function resetForm() {
     document.getElementById('alasan-count').textContent = '0';
     document.getElementById('lembur-absensi-info').style.display = 'none';
     document.getElementById('lembur-preview-menit').style.display = 'none';
+    hideAutoFillIndicator();
     hideFormAlert();
     clearFieldErrors();
+}
+
+function hideAutoFillIndicator() {
+    const indicatorEl = document.getElementById('lembur-autofill-indicator');
+    if (indicatorEl) indicatorEl.style.display = 'none';
 }
 
 function showFormAlert(msg, type = 'error') {
@@ -506,4 +587,8 @@ function setSubmitLoading(isLoading) {
     btn.disabled = isLoading;
     if (text)    text.style.display    = isLoading ? 'none' : '';
     if (spinner) spinner.classList.toggle('k-btn-spinner--visible', isLoading);
+}
+
+function isJam24(value) {
+    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(value ?? '').trim());
 }

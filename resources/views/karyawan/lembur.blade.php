@@ -123,10 +123,13 @@
                         <label for="lembur-jam-mulai" class="k-label">
                             Jam Mulai Lembur <span style="color:#ef4444;">*</span>
                         </label>
-                        <input type="time"
+                        <input type="text"
                                id="lembur-jam-mulai"
                                name="jam_mulai_estimasi"
                                class="k-input"
+                               inputmode="numeric"
+                               placeholder="HH:mm"
+                               pattern="^([01]\d|2[0-3]):([0-5]\d)$"
                                required
                                aria-describedby="err-lembur-jam-mulai">
                         <span class="k-field-error" id="err-lembur-jam-mulai"></span>
@@ -135,14 +138,22 @@
                         <label for="lembur-jam-selesai" class="k-label">
                             Jam Selesai Lembur <span style="color:#ef4444;">*</span>
                         </label>
-                        <input type="time"
+                        <input type="text"
                                id="lembur-jam-selesai"
                                name="jam_selesai_estimasi"
                                class="k-input"
+                               inputmode="numeric"
+                               placeholder="HH:mm"
+                               pattern="^([01]\d|2[0-3]):([0-5]\d)$"
                                required
                                aria-describedby="err-lembur-jam-selesai">
                         <span class="k-field-error" id="err-lembur-jam-selesai"></span>
                     </div>
+                </div>
+                <div id="lembur-autofill-indicator"
+                     class="k-input-hint"
+                     style="display:none;margin-top:-6px;margin-bottom:6px;">
+                    Jam lembur terisi otomatis dari absensi: mulai = jam pulang shift, selesai = jam check-out.
                 </div>
 
                 {{-- Preview menit lembur yang diajukan --}}
