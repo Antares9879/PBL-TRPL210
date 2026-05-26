@@ -1,7 +1,6 @@
 # 📁 Panduan Struktur Folder — PBL-TRPL210
 > **Proyek:** Aplikasi E-Outsourcing PT Ecogreen Oleochemicals Batam Plant  
 > **Framework:** Laravel 12 (PHP 8.2+)  
-> **Anggota Tim:** William · Kelvin · Rafly · Rivaldi · Akut  
 > ⚠️ **Baca dokumen ini sebelum mulai menulis kode!**
 
 ---

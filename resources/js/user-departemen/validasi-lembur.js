@@ -37,7 +37,8 @@ async function loadLembur(page = 1) {
     showSkeleton();
 
     const params = new URLSearchParams({ page });
-    if (filterStatus)        params.set('status', filterStatus);
+    const normalizedStatus = filterStatus === '' ? 'semua' : filterStatus;
+    if (normalizedStatus)    params.set('status', normalizedStatus);
     if (filterTanggalDari)   params.set('tanggal_dari', filterTanggalDari);
     if (filterTanggalSampai) params.set('tanggal_sampai', filterTanggalSampai);
     if (filterKaryawan)      params.set('search', filterKaryawan);
@@ -177,7 +178,7 @@ function injectToolbar() {
             <option value="disetujui">Sudah Disetujui</option>
             <option value="ditolak">Ditolak</option>
             <option value="kadaluarsa">Kadaluarsa</option>
-            <option value="">Semua Status</option>
+            <option value="semua">Semua Status</option>
         </select>
         <button id="btn-reset-filter-lembur" class="btn-secondary">
             Reset
@@ -203,7 +204,8 @@ function injectToolbar() {
         filterTanggalSampai = e.target.value; loadLembur(1);
     });
     wrap.querySelector('#filter-status-lembur')?.addEventListener('change', e => {
-        filterStatus = e.target.value; loadLembur(1);
+        filterStatus = e.target.value === '' ? 'semua' : e.target.value;
+        loadLembur(1);
     });
     wrap.querySelector('#btn-reset-filter-lembur')?.addEventListener('click', () => {
         filterTanggalDari   = '';

@@ -47,6 +47,7 @@ export default defineConfig({
                 'resources/js/hr/dokumen.js',
                 'resources/js/hr/rekap.js',
                 'resources/js/hr/rekap-detail.js',
+                'resources/js/hr/audit.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',

@@ -1215,6 +1215,220 @@
     color: #0f172a;
 }
 
+/* ─── Modal detail audit (F16) ─────────────────────────────────────────────── */
+.hr-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 0.5px solid var(--hr-hijau-border);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+/* Tabel perbandingan data (Diff Table) */
+.hr-diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.hr-diff-table thead {
+    background: var(--hr-hijau-bg);
+}
+
+.hr-diff-table th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--hr-hijau-tua);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--hr-hijau-border);
+}
+
+.hr-diff-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.hr-diff-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.hr-diff-field {
+    font-weight: 500;
+    color: #0f172a;
+}
+
+/* Baris yang berubah */
+.hr-diff-row-changed {
+    background: #FFFBEB;
+}
+
+.hr-diff-row-changed:hover {
+    background: #FEF3C7;
+}
+
+/* Cell yang berubah - data lama (merah muda) */
+.hr-diff-cell-old {
+    background: #FEF2F2;
+    position: relative;
+}
+
+.hr-diff-cell-old::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #EF4444;
+}
+
+/* Cell yang berubah - data baru (hijau muda) */
+.hr-diff-cell-new {
+    background: #F0FDF4;
+    position: relative;
+}
+
+.hr-diff-cell-new::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #10B981;
+}
+
+/* Data perubahan sebelum/sesudah (fallback untuk JSON view) */
+.hr-diff-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.hr-diff-block {
+    background: var(--hr-hijau-bg);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12px;
+    font-family: monospace;
+    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.hr-diff-changed {
+    background: #FEF9C3;
+}
+
+/* Badge aksi audit */
+.hr-badge-approve {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DCFCE7;
+    color: #14532D;
+}
+
+.hr-badge-reject {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEE2E2;
+    color: #7F1D1D;
+}
+
+.hr-badge-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #DBEAFE;
+    color: #1E3A5F;
+}
+
+.hr-badge-update {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    background: #FEF3C7;
+    color: #78350F;
+}
+
+/* Baris tabel audit */
+.hr-baris-approve {
+    background: #F0FDF4;
+}
+
+.hr-baris-reject {
+    background: #FEF2F2;
+}
+
+/* Stat cards ringkasan audit */
+.hr-ringkasan-card {
+    border-left: 3px solid var(--hr-hijau-utama);
+    padding: 12px 16px;
+    background: var(--hr-hijau-bg);
+    border-radius: 0 6px 6px 0;
+}
+
+.hr-ringkasan-card.reject {
+    border-left-color: #DC2626;
+    background: #FEF2F2;
+}
+
+/* Waktu relatif di tabel */
+.hr-waktu-relatif {
+    font-size: 11px;
+    color: #888;
+    display: block;
+}
+
+/* Auto-refresh indicator */
+.hr-refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--hr-hijau-utama);
+}
+
+.hr-refresh-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hr-hijau-utama);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+}
+
 /* Responsive ───────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .hr-kartu-bulan-actions {
@@ -1260,5 +1474,55 @@
 
     .hr-rekap-detail-grid {
         grid-template-columns: 1fr;
+    }
+
+    .hr-diff-container {
+        grid-template-columns: 1fr;
+    }
+
+    /* Tabel diff responsive */
+    .hr-diff-table {
+        font-size: 12px;
+    }
+
+    .hr-diff-table th,
+    .hr-diff-table td {
+        padding: 8px 10px;
+    }
+
+    /* Stack kolom di mobile untuk tabel diff */
+    .hr-diff-table thead {
+        display: none;
+    }
+
+    .hr-diff-table tr {
+        display: block;
+        margin-bottom: 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .hr-diff-table td {
+        display: block;
+        text-align: left;
+        border-bottom: 1px solid #f1f5f9;
+        position: relative;
+        padding-left: 50%;
+    }
+
+    .hr-diff-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        top: 12px;
+        font-weight: 600;
+        font-size: 11px;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .hr-diff-table td:last-child {
+        border-bottom: none;
     }
 }

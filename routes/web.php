@@ -103,7 +103,7 @@ Route::middleware('auth')->group(function () {
     // Logout tetap di web route karena diproses dari form Blade (non-AJAX).
     // JS juga bisa hit POST /api/auth/logout untuk logout via AJAX.
     Route::post('logout', function () {
-        auth::logout();
+        Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
         return redirect('/login');
