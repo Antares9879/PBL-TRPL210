@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
+import fs from 'fs';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -61,9 +63,12 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+    /**server: {
+        https: {
+            key: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.key')),
+            cert: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.crt')),
         },
-    },
+        host: 'localhost',
+        port: 5173,
+    },*/
 });
