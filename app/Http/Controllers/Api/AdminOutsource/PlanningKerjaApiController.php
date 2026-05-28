@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -554,7 +555,7 @@ class PlanningKerjaApiController extends Controller
         $request->validate([
             'id_karyawan'   => 'required|integer|exists:karyawan,id_karyawan',
             'tanggal_kerja' => 'required|date',
-            'id_shift'      => 'nullable|integer|exists:shift,id_shift',
+            'id_shift'      => [Rule::requiredIf(fn () => ! $request->boolean('is_hari_libur')), 'nullable', 'integer', 'exists:shift,id_shift'],
             'is_hari_libur' => 'required|boolean',
         ]);
 

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int    $id_jadwal
  * @property int    $id_planning
  * @property int    $id_karyawan
- * @property int    $id_shift
+ * @property int|null $id_shift
  * @property \Carbon\Carbon|null $tanggal_kerja
  * @property bool   $is_hari_libur
  */
