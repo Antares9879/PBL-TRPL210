@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id('id_jadwal');
             $table->unsignedBigInteger('id_planning');
             $table->unsignedBigInteger('id_karyawan');
-            $table->unsignedBigInteger('id_shift');
+            $table->unsignedBigInteger('id_shift')->nullable();
             $table->date('tanggal_kerja');
             $table->boolean('is_hari_libur')->default(false);
             $table->timestamps();
