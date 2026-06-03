@@ -71,5 +71,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/user-departemen/validasi-lembur.js'])
+    @vite(['resources/js/user-departemen/validasi-lembur.js', 'resources/js/user-departemen/notifikasi.js'])
 @endpush

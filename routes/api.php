@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Karyawan\RiwayatAbsensiApiController;
 use App\Http\Controllers\Api\Karyawan\AreaApiController;
 use App\Http\Controllers\Api\UserDepartemen\DashboardApiController;
 use App\Http\Controllers\Api\UserDepartemen\ValidasiLemburApiController;
+use App\Http\Controllers\Api\NotifikasiApiController;
 
 // ── Auth (public) ──────────────────────────────────────────────────────────────
 Route::prefix('auth')->name('api.auth.')->group(function () {
@@ -37,6 +38,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('auth')->name('api.auth.')->group(function () {
         Route::post('logout', [AuthApiController::class, 'logout'])->name('logout');
         Route::get('me',      [AuthApiController::class, 'me'])->name('me');
+    });
+
+    // ── Notifikasi (shared untuk semua role) ──────────────────────────────────
+    Route::prefix('notifikasi')->name('api.notifikasi.')->group(function () {
+        Route::get('/',             [NotifikasiApiController::class, 'index'])       ->name('index');
+        Route::get('/jumlah-baru',  [NotifikasiApiController::class, 'jumlahBaru']) ->name('jumlah-baru');
+        Route::patch('/{id}/baca',  [NotifikasiApiController::class, 'tandaiBaca']) ->name('tandai-baca');
+        Route::patch('/baca-semua', [NotifikasiApiController::class, 'bacaSemua'])  ->name('baca-semua');
     });
 
     // ── F17 + F18 + F19 — Super Admin ─────────────────────────────────────────

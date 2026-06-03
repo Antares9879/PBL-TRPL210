@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
             Route::get('rekap',         [HRPageController::class, 'rekap'])       ->name('rekap');
             Route::get('rekap/detail',  [HRPageController::class, 'rekapDetail']) ->name('rekap.detail');
             Route::get('audit',         [HRPageController::class, 'audit'])       ->name('audit');
+            Route::get('notifikasi',    [HRPageController::class, 'notifikasi'])  ->name('notifikasi');
         });
 
     // ── User Departemen (F12 + Dashboard Monitoring) ──────────────────────────

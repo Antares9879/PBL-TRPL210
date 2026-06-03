@@ -43,6 +43,7 @@ export default defineConfig({
                 'resources/js/user-departemen/dashboard.js',
                 'resources/js/user-departemen/validasi-lembur.js',
                 'resources/js/user-departemen/monitoring-absensi.js',
+                'resources/js/user-departemen/notifikasi.js',
 
                 // ── JS HR ─────────────────────────────────────────────────────
                 'resources/js/hr/dashboard.js',
@@ -50,6 +51,7 @@ export default defineConfig({
                 'resources/js/hr/rekap.js',
                 'resources/js/hr/rekap-detail.js',
                 'resources/js/hr/audit.js',
+                'resources/js/hr/notifikasi.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',

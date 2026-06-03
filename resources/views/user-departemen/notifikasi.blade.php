@@ -20,47 +20,45 @@
         <div>
             <h1 class="page-title">Notifikasi</h1>
             <p class="page-subtitle">
-                Pengajuan lembur baru dan peringatan sistem.
+                Semua notifikasi dan pembaruan aktivitas Anda.
             </p>
         </div>
+        <button id="btn-tandai-semua-halaman" class="btn-secondary">
+            Tandai semua dibaca
+        </button>
     </div>
 
+    <!-- Tab Filter -->
+    <div class="app-notif-page-tabs" role="tablist">
+        <button class="app-notif-page-tab app-notif-page-tab--active"
+                data-filter="" role="tab">Semua</button>
+        <button class="app-notif-page-tab"
+                data-filter="false" role="tab">Belum Dibaca</button>
+        <button class="app-notif-page-tab"
+                data-filter="true" role="tab">Sudah Dibaca</button>
+    </div>
+
+    <!-- List -->
     <div class="dash-panel dash-panel--full">
-        <div class="dash-panel-header">
-            <div>
-                <h2 class="dash-panel-title">Semua Notifikasi</h2>
-                <p class="dash-panel-subtitle">
-                    Data dimuat via <code style="font-size:11px;background:#f8fafc;padding:1px 6px;border-radius:4px;">GET /api/notifikasi</code>
-                </p>
-            </div>
-            <button id="btn-mark-all-read" class="btn-secondary" style="display:none;">
-                Tandai Semua Dibaca
-            </button>
-        </div>
-        <div class="dash-panel-body" style="padding-top:12px;padding-bottom:12px;">
-            <div class="notif-list" id="notif-list">
-                <div class="notif-item">
-                    <div class="notif-icon notif-icon--lembur">
-                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-                        </svg>
+        <div id="notif-halaman-list" class="dash-panel-body">
+            @for ($i = 0; $i < 5; $i++)
+                <div class="app-notif-item" style="display:flex;gap:12px;padding:12px 20px;">
+                    <div class="skeleton-line"
+                         style="width:36px;height:36px;flex-shrink:0;border-radius:8px;">
                     </div>
-                    <div class="notif-content">
-                        <span class="notif-title">Memuat notifikasi…</span>
-                        <span class="notif-meta">Terhubung ke server</span>
+                    <div style="flex:1;">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line skeleton-line--medium"></div>
                     </div>
                 </div>
-            </div>
+            @endfor
         </div>
+        <div id="paginasi-notif-halaman" style="padding:12px 20px;"></div>
     </div>
 
 </div>
 @endsection
 
 @push('scripts')
-    <script type="module">
-        // Placeholder — akan diimplementasikan jika endpoint notifikasi sudah siap
-        console.log('Notifikasi page loaded');
-    </script>
+    @vite(['resources/js/user-departemen/notifikasi.js'])
 @endpush

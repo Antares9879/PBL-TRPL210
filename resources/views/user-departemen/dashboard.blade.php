@@ -360,5 +360,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/user-departemen/dashboard.js'])
+    @vite(['resources/js/user-departemen/dashboard.js', 'resources/js/user-departemen/notifikasi.js'])
 @endpush
