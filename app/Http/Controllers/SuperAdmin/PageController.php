@@ -48,4 +48,10 @@ class PageController extends Controller
     {
         return view('super-admin.audit-log');
     }
+
+    /** Halaman semua notifikasi Super Admin */
+    public function notifikasi()
+    {
+        return view('super-admin.notifikasi');
+    }
 }

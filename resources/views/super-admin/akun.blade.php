@@ -63,3 +63,7 @@
 @push('scripts')
     @vite(['resources/js/super-admin/akun.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/super-admin/notifikasi.js'])
+@endpush

@@ -103,8 +103,8 @@
 
     </div>
 
-    @if(auth()->check() && in_array(auth()->user()->role, ['user_departemen', 'hr']))
-    <!-- Panel Overlay Notifikasi — User Departemen & HR -->
+    @if(auth()->check() && in_array(auth()->user()->role, ['user_departemen', 'hr', 'super_admin']))
+    <!-- Panel Overlay Notifikasi — User Departemen, HR & Super Admin -->
     <div id="notif-panel-overlay" aria-hidden="true">
         <div id="notif-backdrop"></div>
         <div id="notif-panel" role="dialog" aria-label="Notifikasi" aria-modal="false">

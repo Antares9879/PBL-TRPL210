@@ -7,6 +7,10 @@
 
 @section('sidebar-role', 'Super Administrator')
 
+@section('sidebar-nav')
+    @include('super-admin._sidebar-nav')
+@endsection
+
 {{-- ══ SIDEBAR NAV — scope F17, F18, F19 ══════════════════════════════════ --}}
 @section('sidebar-nav')
 
@@ -414,4 +418,8 @@
 
 @push('scripts')
     @vite(['resources/js/super-admin/dashboard.js'])
+@endpush
+
+@push('scripts')
+    @vite(['resources/js/super-admin/notifikasi.js'])
 @endpush

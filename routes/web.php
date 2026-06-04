@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
             Route::get('master-data/shift',      [SuperAdminPageController::class, 'masterDataShift'])     ->name('master-data.shift');
             Route::get('konfigurasi-area',       [SuperAdminPageController::class, 'konfigurasiArea'])     ->name('konfigurasi-area');
             Route::get('audit-log',              [SuperAdminPageController::class, 'auditLog'])            ->name('audit-log');
+            Route::get('notifikasi',             [SuperAdminPageController::class, 'notifikasi'])          ->name('notifikasi');
         });
 
     // ── HR (F13–F16) ──────────────────────────────────────────────────────────

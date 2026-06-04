@@ -31,6 +31,7 @@ export default defineConfig({
                 'resources/js/super-admin/master-data.js',
                 'resources/js/super-admin/konfigurasi-area.js',
                 'resources/js/super-admin/audit-log.js',
+                'resources/js/super-admin/notifikasi.js',
 
                 // ── JS Admin Outsource ───────────────────────────────────────────────
                 'resources/js/admin-outsource/dashboard.js',

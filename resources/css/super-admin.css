@@ -1399,3 +1399,297 @@ body.app-body {
         padding: 0.5rem;
     }
 }
+
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+/*  NOTIFIKASI PANEL OVERLAY — Super Admin (Blue/Indigo Scheme)              */
+/* ─────────────────────────────────────────────────────────────────────────── */
+
+/* Override warna aksen notifikasi untuk Super Admin (blue/indigo scheme) */
+.app-notif-item--unread {
+    background: color-mix(in srgb, #eff6ff 60%, white);
+}
+.app-notif-item--unread:hover {
+    background: #dbeafe;
+}
+.app-notif-page-tab--active {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+/* Panel button hover untuk Super Admin */
+#btn-tandai-semua-baca:hover {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.btn-secondary {
+    padding: 9px 20px;
+    border: 1px solid var(--blue-100);
+    border-radius: 8px;
+    background: var(--blue-50);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-700);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-secondary:hover {
+    background: var(--blue-100);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.paginasi-btn {
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    color: #374151;
+    font-family: var(--font-body);
+    font-weight: 500;
+    transition: all 0.15s;
+}
+
+.paginasi-btn:hover:not(:disabled) {
+    background: #eff6ff;
+    border-color: var(--blue-100);
+    color: var(--blue-700);
+}
+
+.paginasi-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Nav badge untuk notifikasi di sidebar */
+.nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    margin-left: auto;
+}
+
+/* ─── Panel Overlay Base (jika belum di-load dari role lain) ──────────────── */
+#notif-panel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+}
+
+#notif-panel-overlay.app-notif--open {
+    pointer-events: auto;
+}
+
+#notif-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+#notif-panel-overlay.app-notif--open #notif-backdrop {
+    opacity: 1;
+}
+
+#notif-panel {
+    position: absolute;
+    top: calc(var(--topbar-height) + 8px);
+    right: 16px;
+    width: 360px;
+    max-height: 520px;
+    background: var(--surface-card);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    transform: translateY(-8px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.25s, opacity 0.2s;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#notif-panel-overlay.app-notif--open #notif-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.app-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.app-notif-panel-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.app-notif-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#btn-tandai-semua-baca {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    background: none;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+#btn-tutup-notif-panel {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+#btn-tutup-notif-panel:hover {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+#notif-panel-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.app-notif-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.app-notif-item:hover {
+    background: var(--surface-bg);
+}
+
+.app-notif-item:last-child {
+    border-bottom: none;
+}
+
+.app-notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.app-notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.app-notif-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.app-notif-time {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.app-notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.app-notif-panel-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.app-notif-panel-see-all {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--blue-600);
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.app-notif-panel-see-all:hover {
+    color: var(--blue-700);
+}
+
+.app-notif-page-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 0;
+    flex-wrap: wrap;
+}
+
+.app-notif-page-tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #64748b;
+    transition: all 0.15s;
+}
+
+.app-notif-page-tab:hover {
+    background: #f8fafc;
+}
+
+@media (max-width: 640px) {
+    #notif-panel {
+        width: calc(100vw - 16px);
+        right: 8px;
+    }
+}

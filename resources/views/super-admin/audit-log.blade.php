@@ -198,3 +198,7 @@
 @push('scripts')
     @vite(['resources/js/super-admin/audit-log.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/super-admin/notifikasi.js'])
+@endpush
