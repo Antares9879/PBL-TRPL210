@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
             Route::get('master-data/shift',      [SuperAdminPageController::class, 'masterDataShift'])     ->name('master-data.shift');
             Route::get('konfigurasi-area',       [SuperAdminPageController::class, 'konfigurasiArea'])     ->name('konfigurasi-area');
             Route::get('audit-log',              [SuperAdminPageController::class, 'auditLog'])            ->name('audit-log');
+            Route::get('notifikasi',             [SuperAdminPageController::class, 'notifikasi'])          ->name('notifikasi');
         });
 
     // ── HR (F13–F16) ──────────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
             Route::get('rekap',         [HRPageController::class, 'rekap'])       ->name('rekap');
             Route::get('rekap/detail',  [HRPageController::class, 'rekapDetail']) ->name('rekap.detail');
             Route::get('audit',         [HRPageController::class, 'audit'])       ->name('audit');
+            Route::get('notifikasi',    [HRPageController::class, 'notifikasi'])  ->name('notifikasi');
         });
 
     // ── User Departemen (F12 + Dashboard Monitoring) ──────────────────────────
@@ -84,6 +86,7 @@ Route::middleware('auth')->group(function () {
             Route::get('validasi-absensi', [AdminOutsourcePageController::class, 'validasiAbsensi'])->name('validasi-absensi');
             Route::get('riwayat-absensi',  [AdminOutsourcePageController::class, 'riwayatAbsensi'] )->name('riwayat-absensi');
             Route::get('kelola-izin',      [AdminOutsourcePageController::class, 'kelolaIzin']     )->name('kelola-izin');
+            Route::get('notifikasi',       [AdminOutsourcePageController::class, 'notifikasi']      )->name('notifikasi');
         });
 
     // ── Karyawan (F01–F06) ────────────────────────────────────────────────────
@@ -97,6 +100,7 @@ Route::middleware('auth')->group(function () {
             Route::get('lembur',    [KaryawanPageController::class, 'ajukanLembur'])->name('lembur');
             Route::get('izin',      [KaryawanPageController::class, 'ajukanIzin'])     ->name('izin');
             Route::get('riwayat',   [KaryawanPageController::class, 'lihatAbsensi'])   ->name('riwayat');
+            Route::get('notifikasi', [KaryawanPageController::class, 'notifikasi'])->name('notifikasi');
          });
 
     // ── Logout ────────────────────────────────────────────────────────────────

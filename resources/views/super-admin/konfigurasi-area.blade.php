@@ -59,3 +59,7 @@
 @push('scripts')
     @vite(['resources/js/super-admin/konfigurasi-area.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/super-admin/notifikasi.js'])
+@endpush

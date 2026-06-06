@@ -68,3 +68,7 @@
 @push('scripts')
     @vite(['resources/js/admin-outsource/validasi-absensi.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/notifikasi.js'])
+@endpush

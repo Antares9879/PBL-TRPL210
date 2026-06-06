@@ -253,3 +253,7 @@
 @push('scripts')
     @vite(['resources/js/karyawan/lembur.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/karyawan/notifikasi.js'])
+@endpush

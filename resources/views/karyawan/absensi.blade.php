@@ -421,3 +421,7 @@
             crossorigin="anonymous"></script>
     @vite(['resources/js/karyawan/absensi.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/karyawan/notifikasi.js'])
+@endpush

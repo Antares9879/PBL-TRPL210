@@ -72,5 +72,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/user-departemen/monitoring-absensi.js'])
+    @vite(['resources/js/user-departemen/monitoring-absensi.js', 'resources/js/user-departemen/notifikasi.js'])
 @endpush

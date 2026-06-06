@@ -688,3 +688,279 @@
         text-align: center;
     }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANEL OVERLAY NOTIFIKASI — Shared untuk User Departemen & HR
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#notif-panel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+}
+
+#notif-panel-overlay.app-notif--open {
+    pointer-events: auto;
+}
+
+#notif-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#notif-panel-overlay.app-notif--open #notif-backdrop {
+    opacity: 1;
+}
+
+#notif-panel {
+    position: absolute;
+    top: calc(64px + 8px);
+    right: 16px;
+    width: 360px;
+    max-height: 520px;
+    background: var(--surface-card);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                opacity 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#notif-panel-overlay.app-notif--open #notif-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.app-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.app-notif-panel-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.app-notif-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#btn-tandai-semua-baca {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    background: var(--teal-50);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal-700);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#btn-tandai-semua-baca:hover {
+    background: var(--teal-100);
+}
+
+#btn-tandai-semua-baca:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#btn-tutup-notif-panel {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+#btn-tutup-notif-panel:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+#notif-panel-list {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 400px;
+}
+
+.app-notif-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid var(--surface-border);
+    position: relative;
+}
+
+.app-notif-item:last-child {
+    border-bottom: none;
+}
+
+.app-notif-item:hover {
+    background: var(--surface-bg);
+}
+
+.app-notif-item--unread {
+    background: color-mix(in srgb, #f0fdfa 60%, white);
+}
+
+.app-notif-item--unread:hover {
+    background: #ccfbf1;
+}
+
+.app-notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+.app-notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.app-notif-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    line-height: 1.4;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.app-notif-time {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.app-notif-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    flex-shrink: 0;
+}
+
+.app-notif-panel-footer {
+    border-top: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.app-notif-panel-see-all {
+    display: block;
+    padding: 12px 18px;
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal-600);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-notif-panel-see-all:hover {
+    background: var(--teal-50);
+    color: var(--teal-700);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HALAMAN PENUH NOTIFIKASI — User Departemen
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.app-notif-page-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 16px 0;
+    margin-bottom: 16px;
+}
+
+.app-notif-page-tab {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #64748b;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-notif-page-tab:hover {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.app-notif-page-tab--active {
+    background: #f0fdfa;
+    color: #0f766e;
+}
+
+.app-notif-page-tab--active:hover {
+    background: #ccfbf1;
+    color: #0f766e;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE — Panel Overlay Notifikasi
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+    #notif-panel {
+        width: calc(100vw - 16px);
+        right: 8px;
+        left: 8px;
+    }
+
+    .app-notif-page-tabs {
+        flex-wrap: wrap;
+    }
+
+    .app-notif-page-tab {
+        flex: 1;
+        min-width: 100px;
+    }
+}

@@ -31,6 +31,7 @@ export default defineConfig({
                 'resources/js/super-admin/master-data.js',
                 'resources/js/super-admin/konfigurasi-area.js',
                 'resources/js/super-admin/audit-log.js',
+                'resources/js/super-admin/notifikasi.js',
 
                 // ── JS Admin Outsource ───────────────────────────────────────────────
                 'resources/js/admin-outsource/dashboard.js',
@@ -38,11 +39,13 @@ export default defineConfig({
                 'resources/js/admin-outsource/planning.js',
                 'resources/js/admin-outsource/validasi-absensi.js',
                 'resources/js/admin-outsource/kelola-izin.js',
+                'resources/js/admin-outsource/notifikasi.js',
 
                 // ── JS User Departemen ────────────────────────────────────────
                 'resources/js/user-departemen/dashboard.js',
                 'resources/js/user-departemen/validasi-lembur.js',
                 'resources/js/user-departemen/monitoring-absensi.js',
+                'resources/js/user-departemen/notifikasi.js',
 
                 // ── JS HR ─────────────────────────────────────────────────────
                 'resources/js/hr/dashboard.js',
@@ -50,6 +53,7 @@ export default defineConfig({
                 'resources/js/hr/rekap.js',
                 'resources/js/hr/rekap-detail.js',
                 'resources/js/hr/audit.js',
+                'resources/js/hr/notifikasi.js',
 
                 // ── JS Karyawan ───────────────────────────────────────────────
                 'resources/js/karyawan/dashboard.js',
@@ -58,6 +62,7 @@ export default defineConfig({
                 'resources/js/karyawan/lembur.js',
                 'resources/js/karyawan/jadwal.js',
                 'resources/js/karyawan/riwayat.js',
+                'resources/js/karyawan/notifikasi.js',
             ],
             refresh: true,
         }),

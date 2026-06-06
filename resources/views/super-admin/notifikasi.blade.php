@@ -1,17 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Notifikasi')
-@section('breadcrumb-parent', 'User Departemen')
+@section('breadcrumb-parent', 'Super Admin')
 @section('breadcrumb-current', 'Notifikasi')
-@section('sidebar-role', 'User Departemen')
+@section('sidebar-role', 'Super Administrator')
 
 @section('sidebar-nav')
-    @include('user-departemen._sidebar-nav')
+    @include('super-admin._sidebar-nav')
 @endsection
-
-@push('styles')
-    @vite('resources/css/departemen.css')
-@endpush
 
 @section('content')
 <div class="dashboard-wrap">
@@ -19,9 +15,7 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">Notifikasi</h1>
-            <p class="page-subtitle">
-                Semua notifikasi dan pembaruan aktivitas Anda.
-            </p>
+            <p class="page-subtitle">Semua notifikasi dan pembaruan aktivitas sistem.</p>
         </div>
         <button id="btn-tandai-semua-halaman" class="btn-secondary">
             Tandai semua dibaca
@@ -42,7 +36,7 @@
     <div class="dash-panel dash-panel--full">
         <div id="notif-halaman-list" class="dash-panel-body">
             @for ($i = 0; $i < 5; $i++)
-                <div class="app-notif-item" style="display:flex;gap:12px;padding:12px 20px;">
+                <div style="display:flex;gap:12px;padding:12px 20px;">
                     <div class="skeleton-line"
                          style="width:36px;height:36px;flex-shrink:0;border-radius:8px;">
                     </div>
@@ -60,5 +54,5 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/user-departemen/notifikasi.js'])
+    @vite(['resources/js/super-admin/notifikasi.js'])
 @endpush

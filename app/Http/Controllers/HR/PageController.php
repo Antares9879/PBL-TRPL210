@@ -55,4 +55,12 @@ class PageController extends Controller
     {
         return view('hr.audit');
     }
+
+    /**
+     * Halaman semua notifikasi HR
+     */
+    public function notifikasi(): View
+    {
+        return view('hr.notifikasi');
+    }
 }
