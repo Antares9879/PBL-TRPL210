@@ -61,6 +61,7 @@ export default defineConfig({
                 'resources/js/karyawan/lembur.js',
                 'resources/js/karyawan/jadwal.js',
                 'resources/js/karyawan/riwayat.js',
+                'resources/js/karyawan/notifikasi.js',
             ],
             refresh: true,
         }),

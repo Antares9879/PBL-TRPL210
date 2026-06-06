@@ -100,3 +100,17 @@
     </span>
     <span class="k-nav-item-label">Riwayat Absensi</span>
 </a>
+
+{{-- Notifikasi --}}
+<a href="{{ url('/karyawan/notifikasi') }}"
+   class="k-nav-item {{ request()->is('karyawan/notifikasi*') ? 'k-nav-item--active' : '' }}"
+   aria-current="{{ request()->is('karyawan/notifikasi*') ? 'page' : '' }}">
+    <span class="k-nav-item-icon">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-9.33-4.997M15 17v1a3 3 0 0 1-6 0v-1M6 11a6 6 0 0 1 6-6"/>
+        </svg>
+    </span>
+    <span class="k-nav-item-label">Notifikasi</span>
+    <span class="k-nav-badge" id="sidebar-notif-badge" style="display:none;">0</span>
+</a>

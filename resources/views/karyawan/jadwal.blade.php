@@ -186,3 +186,7 @@
 @push('scripts')
     @vite(['resources/js/karyawan/jadwal.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/karyawan/notifikasi.js'])
+@endpush

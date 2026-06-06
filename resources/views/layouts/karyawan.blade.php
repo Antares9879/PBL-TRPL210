@@ -278,6 +278,49 @@
 })();
 </script>
 
+{{-- ══════════════════════════════════════════════════════════════════════════
+     PANEL OVERLAY NOTIFIKASI
+══════════════════════════════════════════════════════════════════════════ --}}
+<div id="notif-panel-overlay" aria-hidden="true">
+    {{-- Backdrop --}}
+    <div id="notif-backdrop"></div>
+
+    {{-- Panel --}}
+    <div id="notif-panel" role="dialog" aria-label="Notifikasi" aria-modal="false">
+
+        {{-- Header --}}
+        <div class="k-notif-panel-header">
+            <span class="k-notif-panel-title">Notifikasi</span>
+            <div class="k-notif-panel-actions">
+                <button id="btn-tandai-semua-baca" type="button" class="k-notif-panel-btn">
+                    Tandai semua dibaca
+                </button>
+                <button id="btn-tutup-notif-panel" type="button" class="k-notif-panel-close" aria-label="Tutup panel notifikasi">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        {{-- List --}}
+        <div id="notif-panel-list" role="list">
+            {{-- Diisi oleh JS --}}
+        </div>
+
+        {{-- Footer --}}
+        <div class="k-notif-panel-footer">
+            <a href="/karyawan/notifikasi" id="notif-see-all-link" class="k-notif-panel-see-all">
+                Lihat semua notifikasi
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+
+    </div>
+</div>
+
 {{-- JS global (app.js), session monitor, lalu JS spesifik halaman --}}
 @vite(['resources/js/app.js', 'resources/js/session-monitor.js'])
 @stack('scripts')

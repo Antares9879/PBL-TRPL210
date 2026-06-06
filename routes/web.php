@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
             Route::get('lembur',    [KaryawanPageController::class, 'ajukanLembur'])->name('lembur');
             Route::get('izin',      [KaryawanPageController::class, 'ajukanIzin'])     ->name('izin');
             Route::get('riwayat',   [KaryawanPageController::class, 'lihatAbsensi'])   ->name('riwayat');
+            Route::get('notifikasi', [KaryawanPageController::class, 'notifikasi'])->name('notifikasi');
          });
 
     // ── Logout ────────────────────────────────────────────────────────────────

@@ -475,6 +475,24 @@ body.karyawan-body {
     .k-sidebar--collapsed .k-nav-item-label { opacity: 0; }
     .k-sidebar--collapsed .k-nav-item { justify-content: center; padding: 10px; }
 
+    .k-nav-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: var(--radius-pill);
+        background: var(--eco-500);
+        color: #ffffff;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1;
+        margin-left: auto;
+    }
+
+    .k-sidebar--collapsed .k-nav-badge { display: none; }
+
     .k-sidebar-user {
         display: flex;
         align-items: center;
@@ -2507,3 +2525,289 @@ body.karyawan-body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--eco-200); border-radius: 3px; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   NOTIFIKASI IN-APP — Panel Overlay + Halaman Penuh
+══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Panel Overlay ──────────────────────────────────────────────────────── */
+#notif-panel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+}
+
+#notif-panel-overlay.k-notif--open {
+    pointer-events: auto;
+}
+
+#notif-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#notif-panel-overlay.k-notif--open #notif-backdrop {
+    opacity: 1;
+}
+
+#notif-panel {
+    position: absolute;
+    top: calc(var(--topbar-height) + 8px);
+    right: 16px;
+    width: 360px;
+    max-height: 520px;
+    background: var(--surface-card);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(-8px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+#notif-panel-overlay.k-notif--open #notif-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* Header */
+.k-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    border-bottom: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.k-notif-panel-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.k-notif-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.k-notif-panel-btn {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+
+.k-notif-panel-btn:hover {
+    background: var(--eco-50);
+    color: var(--eco-700);
+    border-color: var(--eco-200);
+}
+
+.k-notif-panel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.k-notif-panel-close {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+
+.k-notif-panel-close:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.k-notif-panel-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* List */
+#notif-panel-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-border) transparent;
+}
+
+#notif-panel-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#notif-panel-list::-webkit-scrollbar-thumb {
+    background: var(--surface-border);
+    border-radius: 2px;
+}
+
+/* Footer */
+.k-notif-panel-footer {
+    flex-shrink: 0;
+    border-top: 1px solid var(--surface-border);
+    padding: var(--space-2);
+}
+
+.k-notif-panel-see-all {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--eco-700);
+    text-decoration: none;
+    transition: background var(--t-fast), color var(--t-fast);
+}
+
+.k-notif-panel-see-all:hover {
+    background: var(--eco-50);
+    color: var(--eco-800);
+}
+
+.k-notif-panel-see-all svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ── Item Notifikasi ────────────────────────────────────────────────────── */
+.k-notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    border-bottom: 1px solid var(--surface-border);
+    position: relative;
+}
+
+.k-notif-item:hover {
+    background: var(--surface-bg);
+}
+
+.k-notif-item:last-child {
+    border-bottom: none;
+}
+
+.k-notif-item--unread {
+    background: color-mix(in srgb, var(--eco-50) 60%, white);
+}
+
+.k-notif-item--unread:hover {
+    background: var(--eco-50);
+}
+
+.k-notif-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--surface-bg);
+}
+
+.k-notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.k-notif-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 3px;
+}
+
+.k-notif-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.k-notif-unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--eco-500);
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+/* ── Halaman Penuh ──────────────────────────────────────────────────────── */
+.k-notif-page-tabs {
+    display: flex;
+    gap: 4px;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--surface-border);
+    background: var(--surface-card);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.k-notif-page-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.k-notif-page-tab {
+    padding: 6px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    transition: background var(--t-fast), color var(--t-fast);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.k-notif-page-tab:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.k-notif-page-tab--active {
+    background: var(--eco-50);
+    color: var(--eco-700);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    #notif-panel {
+        width: calc(100vw - 16px);
+        right: 8px;
+    }
+}

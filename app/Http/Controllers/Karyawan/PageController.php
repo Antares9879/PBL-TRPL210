@@ -54,6 +54,12 @@ class PageController extends Controller
         return view('karyawan.riwayat');
     }
 
+    /** Halaman semua notifikasi karyawan */
+    public function notifikasi()
+    {
+        return view('karyawan.notifikasi');
+    }
+
 }
 
 
