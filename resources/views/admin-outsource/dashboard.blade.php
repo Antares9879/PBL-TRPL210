@@ -503,3 +503,7 @@
 @push('scripts')
     @vite(['resources/js/admin-outsource/dashboard.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/notifikasi.js'])
+@endpush

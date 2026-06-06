@@ -39,6 +39,7 @@ export default defineConfig({
                 'resources/js/admin-outsource/planning.js',
                 'resources/js/admin-outsource/validasi-absensi.js',
                 'resources/js/admin-outsource/kelola-izin.js',
+                'resources/js/admin-outsource/notifikasi.js',
 
                 // ── JS User Departemen ────────────────────────────────────────
                 'resources/js/user-departemen/dashboard.js',

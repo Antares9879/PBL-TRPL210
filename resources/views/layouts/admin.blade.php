@@ -122,5 +122,35 @@
         });
     </script>
 
+    {{-- ═══ PANEL OVERLAY NOTIFIKASI ═══════════════════════════════════════ --}}
+    <div id="notif-panel-overlay" aria-hidden="true">
+        <div id="notif-backdrop"></div>
+        <div id="notif-panel" role="dialog" aria-label="Notifikasi" aria-modal="false">
+
+            <div class="a-notif-panel-header">
+                <span class="a-notif-panel-title">Notifikasi</span>
+                <div class="a-notif-panel-actions">
+                    <button id="btn-tandai-semua-baca" type="button">Tandai semua dibaca</button>
+                    <button id="btn-tutup-notif-panel" type="button" aria-label="Tutup">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="notif-panel-list" role="list">
+                {{-- diisi JS --}}
+            </div>
+
+            <div class="a-notif-panel-footer">
+                <a href="{{ url('/admin/notifikasi') }}" class="a-notif-panel-see-all">
+                    Lihat semua notifikasi
+                </a>
+            </div>
+
+        </div>
+    </div>
+
 </body>
 </html>

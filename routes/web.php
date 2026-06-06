@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
             Route::get('validasi-absensi', [AdminOutsourcePageController::class, 'validasiAbsensi'])->name('validasi-absensi');
             Route::get('riwayat-absensi',  [AdminOutsourcePageController::class, 'riwayatAbsensi'] )->name('riwayat-absensi');
             Route::get('kelola-izin',      [AdminOutsourcePageController::class, 'kelolaIzin']     )->name('kelola-izin');
+            Route::get('notifikasi',       [AdminOutsourcePageController::class, 'notifikasi']      )->name('notifikasi');
         });
 
     // ── Karyawan (F01–F06) ────────────────────────────────────────────────────

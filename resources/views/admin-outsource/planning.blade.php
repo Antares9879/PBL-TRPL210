@@ -38,3 +38,7 @@
     </script>
     @vite(['resources/js/admin-outsource/planning.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/notifikasi.js'])
+@endpush

@@ -66,3 +66,7 @@
 @push('scripts')
     @vite(['resources/js/admin-outsource/karyawan.js'])
 @endpush
+
+@push('scripts')
+    @vite(['resources/js/admin-outsource/notifikasi.js'])
+@endpush

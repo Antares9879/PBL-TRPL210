@@ -1423,3 +1423,321 @@ body.app-body {
 .preview-error-baris { font-weight: 600; color: #991b1b; white-space: nowrap; min-width: 50px; }
 .preview-error-msg   { flex: 1; color: #7f1d1d; }
 .preview-error-tgl   { color: #94a3b8; font-size: 11px; white-space: nowrap; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANEL OVERLAY NOTIFIKASI — Admin Outsource
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#notif-panel-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+}
+
+#notif-panel-overlay.a-notif--open {
+    pointer-events: auto;
+}
+
+#notif-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#notif-panel-overlay.a-notif--open #notif-backdrop {
+    opacity: 1;
+}
+
+#notif-panel {
+    position: absolute;
+    top: calc(var(--topbar-height) + 8px);
+    right: 16px;
+    width: 360px;
+    max-height: 520px;
+    background: var(--surface-card);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px) scale(0.97);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#notif-panel-overlay.a-notif--open #notif-panel {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.a-notif-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.a-notif-panel-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+}
+
+.a-notif-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#btn-tandai-semua-baca {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber-700);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+#btn-tandai-semua-baca:hover {
+    background: var(--amber-50);
+}
+
+#btn-tutup-notif-panel {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+#btn-tutup-notif-panel:hover {
+    background: #f1f5f9;
+    color: #374151;
+}
+
+#btn-tutup-notif-panel svg {
+    width: 14px;
+    height: 14px;
+}
+
+#notif-panel-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 20px;
+}
+
+#notif-panel-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#notif-panel-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+.a-notif-panel-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--surface-border);
+    flex-shrink: 0;
+}
+
+.a-notif-panel-see-all {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--amber-700);
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.a-notif-panel-see-all:hover {
+    background: var(--amber-50);
+}
+
+/* Notif item di panel overlay */
+.a-notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    position: relative;
+}
+
+.a-notif-item:last-child {
+    border-bottom: none;
+}
+
+.a-notif-item:hover {
+    background: #fafbfc;
+    margin: 0 -20px;
+    padding: 12px 20px;
+}
+
+.a-notif-item--unread {
+    background: color-mix(in srgb, #fffbeb 70%, white);
+}
+
+.a-notif-item--unread:hover {
+    background: #fef9c3;
+}
+
+.a-notif-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--amber-50);
+    margin-top: 1px;
+}
+
+.a-notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.a-notif-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.a-notif-time {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 3px;
+}
+
+.a-notif-unread-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber-500);
+    flex-shrink: 0;
+    margin-top: 6px;
+}
+
+/* Halaman penuh notifikasi */
+.a-notif-page-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 0;
+}
+
+.a-notif-page-tab {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 10px 18px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.a-notif-page-tab:hover {
+    color: var(--amber-700);
+}
+
+.a-notif-page-tab--active {
+    color: var(--amber-700);
+    border-bottom-color: var(--amber-500);
+}
+
+/* Tombol untuk paginasi halaman notifikasi */
+.a-btn {
+    padding: 7px 14px;
+    border-radius: 7px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.a-btn--outline {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #374151;
+}
+
+.a-btn--outline:hover:not(:disabled) {
+    background: #f8fafc;
+}
+
+.a-btn--outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.a-btn--sm {
+    padding: 6px 12px;
+}
+
+/* Tombol secondary untuk tandai semua di halaman */
+.btn-secondary {
+    padding: 9px 18px;
+    border: 1px solid var(--amber-200);
+    border-radius: 8px;
+    background: var(--amber-50);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--amber-800);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--amber-100);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    #notif-panel {
+        width: calc(100vw - 16px);
+        right: 8px;
+        max-height: calc(100vh - var(--topbar-height) - 24px);
+    }
+}

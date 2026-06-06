@@ -57,4 +57,10 @@ class PageController extends Controller
     {
         return view('admin-outsource.kelola-izin');
     }
+
+    /** Halaman semua notifikasi Admin Outsource */
+    public function notifikasi()
+    {
+        return view('admin-outsource.notifikasi');
+    }
 }
