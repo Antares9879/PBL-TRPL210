@@ -113,6 +113,7 @@
     </div>
 
     @vite(['resources/js/app.js', 'resources/js/session-monitor.js'])
+    @include('layouts._panel-profile') {{-- Panel Profil Pengguna --}}
     @stack('scripts')
 
     <script>
