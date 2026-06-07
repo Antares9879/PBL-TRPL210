@@ -23,7 +23,8 @@ import {
 const isRiwayat = window.location.pathname.includes('riwayat');
 
 let currentPage       = 1;
-let filterTanggal     = '';
+let filterTanggalDari = getTodayDateString();
+let filterTanggalSampai = getTodayDateString();
 let filterKaryawan    = '';
 let filterValidasi    = isRiwayat ? '' : 'menunggu';
 let filterBulan       = new Date().getMonth() + 1;
@@ -57,7 +58,8 @@ async function loadAbsensi(page = 1) {
 
     const params = new URLSearchParams({ page });
     if (filterValidasi)  params.set('status_validasi', filterValidasi);
-    if (filterTanggal)   params.set('tanggal',          filterTanggal);
+    if (filterTanggalDari)   params.set('tanggal_dari',   filterTanggalDari);
+    if (filterTanggalSampai) params.set('tanggal_sampai', filterTanggalSampai);
     if (filterKaryawan)  params.set('search',            filterKaryawan);
 
     try {
@@ -172,8 +174,12 @@ function injectToolbarValidasi() {
     wrap.innerHTML = `
         <input id="search-karyawan-absensi" class="ao-search" type="text"
             placeholder="Cari nama karyawan..." style="width:200px;">
-        <input id="filter-tanggal" type="date" class="ao-select"
-            style="padding:7px 12px;" placeholder="Pilih tanggal...">
+        <input id="filter-tanggal-dari" type="date" class="ao-select"
+            value="${filterTanggalDari}" aria-label="Tanggal mulai"
+            title="Tanggal mulai" style="padding:7px 12px;">
+        <input id="filter-tanggal-sampai" type="date" class="ao-select"
+            value="${filterTanggalSampai}" aria-label="Tanggal akhir"
+            title="Tanggal akhir" style="padding:7px 12px;">
         <select id="filter-validasi-status" class="ao-select">
             <option value="">Semua Status</option>
             <option value="menunggu" selected>Menunggu Validasi</option>
@@ -198,24 +204,37 @@ function injectToolbarValidasi() {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => { filterKaryawan = e.target.value.trim(); loadAbsensi(1); }, 400);
     });
-    wrap.querySelector('#filter-tanggal')?.addEventListener('change', e => {
-        filterTanggal = e.target.value; loadAbsensi(1);
+    wrap.querySelector('#filter-tanggal-dari')?.addEventListener('change', e => {
+        filterTanggalDari = e.target.value;
+        if (filterTanggalDari && filterTanggalSampai && filterTanggalDari > filterTanggalSampai) {
+            filterTanggalSampai = filterTanggalDari;
+            wrap.querySelector('#filter-tanggal-sampai').value = filterTanggalSampai;
+        }
+        loadAbsensi(1);
+    });
+    wrap.querySelector('#filter-tanggal-sampai')?.addEventListener('change', e => {
+        filterTanggalSampai = e.target.value;
+        if (filterTanggalDari && filterTanggalSampai && filterTanggalSampai < filterTanggalDari) {
+            filterTanggalDari = filterTanggalSampai;
+            wrap.querySelector('#filter-tanggal-dari').value = filterTanggalDari;
+        }
+        loadAbsensi(1);
     });
     wrap.querySelector('#filter-validasi-status')?.addEventListener('change', e => {
         filterValidasi = e.target.value; loadAbsensi(1);
     });
     wrap.querySelector('#btn-reset-filter-absensi')?.addEventListener('click', () => {
-        filterTanggal   = '';
+        const today = getTodayDateString();
+        filterTanggalDari   = today;
+        filterTanggalSampai = today;
         filterKaryawan  = '';
         filterValidasi  = 'menunggu';
-        wrap.querySelector('#filter-tanggal').value       = '';
+        wrap.querySelector('#filter-tanggal-dari').value = today;
+        wrap.querySelector('#filter-tanggal-sampai').value = today;
         wrap.querySelector('#search-karyawan-absensi').value = '';
         wrap.querySelector('#filter-validasi-status').value = 'menunggu';
         loadAbsensi(1);
     });
-
-    // TIDAK set default tanggal - biarkan kosong untuk menampilkan semua data
-    // filterTanggal = ''; // Sudah di-init di atas
 
     // Delegasi tabel
     document.querySelector('.dash-panel--full')?.addEventListener('click', async e => {
@@ -296,7 +315,16 @@ async function loadRiwayat(page = 1) {
     currentPage = page;
     showSkeleton(9, 'tbody-riwayat-absensi');
 
-    const params = new URLSearchParams({ page, bulan: filterBulan, tahun: filterTahun });
+    const bulanPad = String(filterBulan).padStart(2, '0');
+    const tanggalDari = `${filterTahun}-${bulanPad}-01`;
+    const tanggalSampai = `${filterTahun}-${bulanPad}-${String(new Date(filterTahun, filterBulan, 0).getDate()).padStart(2, '0')}`;
+    const params = new URLSearchParams({
+        page,
+        bulan: filterBulan,
+        tahun: filterTahun,
+        tanggal_dari: tanggalDari,
+        tanggal_sampai: tanggalSampai,
+    });
     if (filterKaryawan) params.set('search', filterKaryawan);
 
     try {
@@ -322,7 +350,12 @@ function renderRiwayat(rows) {
         return;
     }
 
-    tbody.innerHTML = rows.map(row => `
+    tbody.innerHTML = rows.map(row => {
+        const namaKaryawan = row.nama_karyawan ?? row.karyawan?.nama_lengkap ?? '-';
+        const nomorKaryawan = row.nomor_karyawan ?? row.karyawan?.nomor_karyawan ?? '';
+        const namaShift = row.nama_shift ?? row.shift?.nama_shift ?? '-';
+
+        return `
         <tr>
             <td>
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -330,13 +363,16 @@ function renderRiwayat(rows) {
                         background:linear-gradient(135deg,#1a6e1a,#0a280a);
                         display:flex;align-items:center;justify-content:center;
                         font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#87dc87;">
-                        ${esc(row.nama_karyawan?.charAt(0)?.toUpperCase() ?? '?')}
+                        ${esc(namaKaryawan?.charAt(0)?.toUpperCase() ?? '?')}
                     </div>
-                    <span style="font-weight:500;color:#0f172a;font-size:13px;">${esc(row.nama_karyawan)}</span>
+                    <div>
+                        <div style="font-weight:500;color:#0f172a;font-size:13px;">${esc(namaKaryawan)}</div>
+                        <div style="font-size:11px;color:#94a3b8;">${esc(nomorKaryawan)}</div>
+                    </div>
                 </div>
             </td>
             <td style="font-size:12px;color:#475569;">${fmtTanggal(row.tanggal_absensi)}</td>
-            <td style="font-size:12px;color:#475569;">${esc(row.nama_shift ?? '—')}</td>
+            <td style="font-size:12px;color:#475569;">${esc(namaShift)}</td>
             <td style="font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:#0f172a;">
                 ${fmtWaktu(row.waktu_check_in)}</td>
             <td style="font-family:'Syne',sans-serif;font-size:13px;color:#475569;">
@@ -351,7 +387,8 @@ function renderRiwayat(rows) {
             <td>${badgeKehadiran(row.status_kehadiran)}</td>
             <td>${badgeValidasi(row.status_validasi)}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function injectToolbarRiwayat() {
@@ -425,6 +462,14 @@ function showSkeleton(cols, tbodyId) {
 function showEmpty(cols, tbodyId, msg) {
     const tbody = document.getElementById(tbodyId) ?? document.querySelector('.data-table tbody');
     if (tbody) tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;padding:36px;color:#94a3b8;font-size:13px;">${msg}</td></tr>`;
+}
+
+function getTodayDateString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const date = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${date}`;
 }
 
 function getVal(id) { return document.getElementById(id)?.value ?? ''; }
