@@ -291,8 +291,11 @@ async function showSingleApproveModal(id) {
             fmtTanggal(currentAbsensiData.tanggal_absensi);
         document.getElementById('approve-detail-shift').textContent = 
             `${currentAbsensiData.shift?.nama_shift ?? '—'} (${currentAbsensiData.shift?.jam_masuk ?? '—'} - ${currentAbsensiData.shift?.jam_pulang ?? '—'})`;
-        document.getElementById('approve-detail-checkin').textContent = 
-            fmtWaktu(currentAbsensiData.waktu_check_in) + getStatusTelat(currentAbsensiData);
+        document.getElementById('approve-detail-checkin').innerHTML = 
+            `<div style="display:flex;flex-direction:column;gap:4px;">
+                <span>${fmtWaktu(currentAbsensiData.waktu_check_in)}</span>
+                ${getStatusTelat(currentAbsensiData)}
+            </div>`;
         document.getElementById('approve-detail-checkout').textContent = 
             fmtWaktu(currentAbsensiData.waktu_check_out) || '—';
         document.getElementById('approve-detail-lokasi').textContent = 
@@ -350,8 +353,11 @@ async function showSingleRejectModal(id) {
             fmtTanggal(currentAbsensiData.tanggal_absensi);
         document.getElementById('reject-detail-shift').textContent = 
             `${currentAbsensiData.shift?.nama_shift ?? '—'} (${currentAbsensiData.shift?.jam_masuk ?? '—'} - ${currentAbsensiData.shift?.jam_pulang ?? '—'})`;
-        document.getElementById('reject-detail-checkin').textContent = 
-            fmtWaktu(currentAbsensiData.waktu_check_in) + getStatusTelat(currentAbsensiData);
+        document.getElementById('reject-detail-checkin').innerHTML = 
+            `<div style="display:flex;flex-direction:column;gap:4px;">
+                <span>${fmtWaktu(currentAbsensiData.waktu_check_in)}</span>
+                ${getStatusTelat(currentAbsensiData)}
+            </div>`;
         document.getElementById('reject-detail-checkout').textContent = 
             fmtWaktu(currentAbsensiData.waktu_check_out) || '—';
         document.getElementById('reject-detail-lokasi').textContent = 
@@ -721,20 +727,20 @@ function injectModalsValidasi() {
             <div class="modal-body">
                 <div style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:16px;">
                     <table style="width:100%;font-size:13px;">
-                        <tr><td style="color:#64748b;padding:4px 0;width:140px;">Nama Karyawan</td>
-                            <td style="font-weight:500;color:#0f172a;" id="approve-detail-nama">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Tanggal</td>
-                            <td style="color:#0f172a;" id="approve-detail-tanggal">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Shift</td>
-                            <td style="color:#0f172a;" id="approve-detail-shift">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Check-in</td>
-                            <td style="color:#0f172a;font-weight:500;" id="approve-detail-checkin">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Check-out</td>
-                            <td style="color:#0f172a;" id="approve-detail-checkout">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Lokasi Check-in</td>
-                            <td style="color:#0f172a;font-size:11px;" id="approve-detail-lokasi">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Jarak dari Area</td>
-                            <td style="color:#0f172a;" id="approve-detail-jarak">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;width:140px;vertical-align:top;">Nama Karyawan</td>
+                            <td style="font-weight:500;color:#0f172a;vertical-align:top;" id="approve-detail-nama">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Tanggal</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="approve-detail-tanggal">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Shift</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="approve-detail-shift">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Check-in</td>
+                            <td style="color:#0f172a;font-weight:500;vertical-align:top;" id="approve-detail-checkin">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Check-out</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="approve-detail-checkout">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Lokasi Check-in</td>
+                            <td style="color:#0f172a;font-size:11px;vertical-align:top;" id="approve-detail-lokasi">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Jarak dari Area</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="approve-detail-jarak">—</td></tr>
                     </table>
                 </div>
                 <p style="font-size:13px;color:#64748b;margin:16px 0;">
@@ -758,20 +764,20 @@ function injectModalsValidasi() {
             <div class="modal-body">
                 <div style="background:#f8fafc;padding:12px;border-radius:8px;margin-bottom:16px;">
                     <table style="width:100%;font-size:13px;">
-                        <tr><td style="color:#64748b;padding:4px 0;width:140px;">Nama Karyawan</td>
-                            <td style="font-weight:500;color:#0f172a;" id="reject-detail-nama">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Tanggal</td>
-                            <td style="color:#0f172a;" id="reject-detail-tanggal">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Shift</td>
-                            <td style="color:#0f172a;" id="reject-detail-shift">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Check-in</td>
-                            <td style="color:#0f172a;font-weight:500;" id="reject-detail-checkin">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Check-out</td>
-                            <td style="color:#0f172a;" id="reject-detail-checkout">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Lokasi Check-in</td>
-                            <td style="color:#0f172a;font-size:11px;" id="reject-detail-lokasi">—</td></tr>
-                        <tr><td style="color:#64748b;padding:4px 0;">Jarak dari Area</td>
-                            <td style="color:#0f172a;" id="reject-detail-jarak">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;width:140px;vertical-align:top;">Nama Karyawan</td>
+                            <td style="font-weight:500;color:#0f172a;vertical-align:top;" id="reject-detail-nama">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Tanggal</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="reject-detail-tanggal">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Shift</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="reject-detail-shift">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Check-in</td>
+                            <td style="color:#0f172a;font-weight:500;vertical-align:top;" id="reject-detail-checkin">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Check-out</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="reject-detail-checkout">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Lokasi Check-in</td>
+                            <td style="color:#0f172a;font-size:11px;vertical-align:top;" id="reject-detail-lokasi">—</td></tr>
+                        <tr><td style="color:#64748b;padding:4px 0;vertical-align:top;">Jarak dari Area</td>
+                            <td style="color:#0f172a;vertical-align:top;" id="reject-detail-jarak">—</td></tr>
                     </table>
                 </div>
                 <div class="form-group" style="margin-bottom:12px;">
