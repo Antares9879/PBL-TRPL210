@@ -199,7 +199,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // F10–F11 — Validasi Absensi & Izin
             Route::get('validasi-absensi',       [ValidasiAbsensiApiController::class, 'index'])       ->name('validasi-absensi.index');
-            Route::post('validasi-absensi/{id}', [ValidasiAbsensiApiController::class, 'validasi'])    ->name('validasi-absensi.validasi');
+            Route::post('validasi-absensi/bulk-approve', [ValidasiAbsensiApiController::class, 'bulkApprove'])->name('validasi-absensi.bulk-approve');
+            Route::post('validasi-absensi/bulk-reject',  [ValidasiAbsensiApiController::class, 'bulkReject']) ->name('validasi-absensi.bulk-reject');
+            
+            // F10 — Single validation dengan modal konfirmasi
+            Route::post('validasi-absensi/{id}/approve', [ValidasiAbsensiApiController::class, 'approve'])->name('validasi-absensi.approve');
+            Route::post('validasi-absensi/{id}/reject',  [ValidasiAbsensiApiController::class, 'reject']) ->name('validasi-absensi.reject');
+            
+            // F10 — Bulk validation
+            Route::post('validasi-absensi/bulk-approve', [ValidasiAbsensiApiController::class, 'bulkApprove'])->name('validasi-absensi.bulk-approve');
+            Route::post('validasi-absensi/bulk-reject',  [ValidasiAbsensiApiController::class, 'bulkReject']) ->name('validasi-absensi.bulk-reject');
+            
             Route::get('validasi-izin',          [ValidasiAbsensiApiController::class, 'indexIzin'])   ->name('validasi-izin.index');
             Route::get('validasi-izin/{id}',     [ValidasiAbsensiApiController::class, 'showIzin'])    ->name('validasi-izin.show');
             Route::post('validasi-izin/{id}',    [ValidasiAbsensiApiController::class, 'validasiIzin'])->name('validasi-izin.validasi');
