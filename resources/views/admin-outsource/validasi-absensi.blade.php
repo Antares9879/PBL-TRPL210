@@ -34,6 +34,11 @@
                 <table class="data-table">
                     <thead>
                         <tr>
+                            <th style="width:40px;">
+                                <input type="checkbox" id="select-all-checkbox" 
+                                    style="width:16px;height:16px;cursor:pointer;" 
+                                    title="Pilih semua">
+                            </th>
                             <th>Karyawan</th>
                             <th>Tanggal</th>
                             <th>Shift</th>
@@ -47,7 +52,7 @@
                     </thead>
                     <tbody id="tbody-validasi-absensi">
                         <tr>
-                            <td colspan="9">
+                            <td colspan="10">
                                 <div class="skeleton-wrap" style="padding:8px 0;">
                                     <div class="skeleton-line"></div>
                                     <div class="skeleton-line skeleton-line--medium"></div>
@@ -58,6 +63,23 @@
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Bulk Action Buttons -->
+            <div id="bulk-action-bar" style="display:none;padding:12px 16px;background:#f8fafc;
+                border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;">
+                <div style="font-size:13px;color:#64748b;">
+                    <span id="selected-count">0</span> absensi dipilih
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button id="btn-bulk-approve" class="btn-approve" style="padding:8px 16px;">
+                        ✓ Approve Selected
+                    </button>
+                    <button id="btn-bulk-reject" class="btn-reject" style="padding:8px 16px;">
+                        ✕ Reject Selected
+                    </button>
+                </div>
+            </div>
+            
             <div id="paginasi-absensi"></div>
         </div>
     </div>
