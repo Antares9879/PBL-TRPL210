@@ -138,22 +138,38 @@
         <button class="hr-tab" data-status="tidak_lengkap">Tidak Lengkap</button>
     </div>
 
-    <div class="hr-bulk-action-bar">
-        <div class="hr-bulk-action-left">
-            <label class="hr-checkbox-label">
-                <input type="checkbox" id="select-all-checkbox" class="hr-checkbox">
-                <span>Pilih Semua</span>
-            </label>
-            <span id="selected-count" class="hr-selected-count" style="display:none;">0 dipilih</span>
-        </div>
-        <div class="hr-bulk-action-right" id="bulk-action-controls" style="display:none;">
-            <select id="bulk-action-select" class="hr-filter-select" style="width:220px;">
-                <option value="">Pilih Aksi...</option>
-                <option value="tandai_lengkap">Tandai Lengkap</option>
-                <option value="tandai_tidak_lengkap">Tandai Tidak Lengkap</option>
-            </select>
-            <button id="btn-bulk-action-go" class="hr-btn-primary" disabled>Terapkan</button>
-        </div>
+    <div id="bulk-action-bar" 
+        style="display:none; position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+                z-index:200; background:var(--color-background-primary);
+                border:0.5px solid var(--color-border-secondary);
+                border-radius:12px; padding:10px 16px;
+                box-shadow:0 4px 20px rgba(0,0,0,0.10);
+                align-items:center; gap:12px;">
+        <span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;
+                    padding-right:12px;border-right:0.5px solid var(--color-border-tertiary);">
+            <span id="selected-count" style="background:var(--color-background-info);
+                color:var(--color-text-info);border-radius:999px;
+                font-size:11px;padding:2px 8px;font-weight:500;">0</span>
+            <span style="color:var(--color-text-secondary);font-size:12px;">dipilih</span>
+        </span>
+        <button id="btn-bulk-lengkap" style="display:inline-flex;align-items:center;gap:6px;
+                font-size:12px;font-weight:500;padding:6px 12px;border-radius:8px;
+                border:0.5px solid #C0DD97;background:#EAF3DE;color:#3B6D11;cursor:pointer;">
+            Tandai Lengkap
+        </button>
+        <button id="btn-bulk-tidak-lengkap" style="display:inline-flex;align-items:center;gap:6px;
+                font-size:12px;font-weight:500;padding:6px 12px;border-radius:8px;
+                border:0.5px solid #F7C1C1;background:#FCEBEB;color:#A32D2D;cursor:pointer;">
+            Tidak Lengkap
+        </button>
+        <div style="width:0.5px;height:20px;background:var(--color-border-tertiary);"></div>
+        <button onclick="clearBulkSelection()" 
+        title="Batalkan pilihan"
+        style="width:24px;height:24px;border-radius:999px;border:0.5px solid var(--color-border-tertiary);
+               background:var(--color-background-secondary);color:var(--color-text-secondary);
+               cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">
+            ×
+        </button>
     </div>
 
     <div class="dash-panel dash-panel--full">
