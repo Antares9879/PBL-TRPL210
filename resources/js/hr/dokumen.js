@@ -3,6 +3,23 @@
  * Verifikasi Dokumen Izin HR - Bulk Action + Detail Verifikasi
  */
 
+window.clearBulkSelection = function() {
+    // Reset state
+    state.selectedIds.clear();
+
+    // Uncheck semua row checkbox
+    document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+
+    // Uncheck select-all
+    if (el.selectAllHeader) el.selectAllHeader.checked = false;
+    if (el.selectAllTop)    el.selectAllTop.checked    = false;
+
+    // Sembunyikan toolbar
+    const bar = document.getElementById('bulk-action-bar');
+    if (bar) bar.style.display = 'none';
+};
+
+
 const state = {
     page: 1,
     filters: {
@@ -46,10 +63,6 @@ function cacheElements() {
 
     el.selectAllHeader = document.getElementById('select-all-header');
     el.selectAllTop = document.getElementById('select-all-checkbox');
-    el.selectedCount = document.getElementById('selected-count');
-    el.bulkActionControls = document.getElementById('bulk-action-controls');
-    el.bulkActionSelect = document.getElementById('bulk-action-select');
-    el.btnBulkGo = document.getElementById('btn-bulk-action-go');
 
     el.tbody = document.getElementById('tbody-pengajuan-izin');
     el.paginasi = document.getElementById('paginasi-pengajuan');
@@ -410,25 +423,30 @@ function bindEvents() {
 
 function updateBulkUI() {
     const count = state.selectedIds.size;
+    const bar = document.getElementById('bulk-action-bar');
+    
+    if (bar) bar.style.display = count > 0 ? 'flex' : 'none';
+    
+    // Update badge count
+    const countBadge = document.getElementById('selected-count');
+    if (countBadge) countBadge.textContent = count;
 
-    if (el.selectedCount) {
-        el.selectedCount.style.display = count > 0 ? 'inline-flex' : 'none';
-        el.selectedCount.textContent = `${count} dipilih`;
-    }
-
-    if (el.bulkActionControls) {
-        el.bulkActionControls.style.display = count > 0 ? 'flex' : 'none';
-    }
-
+    // Sync select-all checkbox
     const visible = getVisibleRowIds();
-    const allChecked = visible.length > 0 && visible.every((id) => state.selectedIds.has(id));
+    const allChecked = visible.length > 0 && visible.every(id => state.selectedIds.has(id));
     if (el.selectAllHeader) el.selectAllHeader.checked = allChecked;
     if (el.selectAllTop) el.selectAllTop.checked = allChecked;
-
-    if (el.btnBulkGo) {
-        el.btnBulkGo.disabled = !(count > 0 && state.selectedBulkAction);
-    }
 }
+
+// Bind event untuk dua tombol langsung tanpa harus pilih di dropdown
+document.getElementById('btn-bulk-lengkap')?.addEventListener('click', () => {
+    state.selectedBulkAction = 'tandai_lengkap';
+    openBulkModal();
+});
+document.getElementById('btn-bulk-tidak-lengkap')?.addEventListener('click', () => {
+    state.selectedBulkAction = 'tandai_tidak_lengkap';
+    openBulkModal();
+});
 
 function renderSelectedRows() {
     const rows = el.tbody?.querySelectorAll('tr[data-row-id]') || [];
