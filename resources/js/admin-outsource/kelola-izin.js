@@ -706,6 +706,31 @@ function injectModals() {
             </div>
         </div>
 
+        <!-- ══ Modal Konfirmasi Approve Izin ════════════════════════════ -->
+        <div id="modal-approve-izin" class="modal-overlay" style="display:none;">
+            <div class="modal-box" style="max-width:420px;">
+                <div class="modal-header">
+                    <h3 class="modal-title" style="color:#16a34a;">✓ Konfirmasi Persetujuan Izin</h3>
+                    <button data-close-modal="modal-approve-izin" class="modal-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:13px;color:#64748b;line-height:1.6;margin:0 0 20px;">
+                        Apakah Anda yakin ingin menyetujui izin untuk <strong id="modal-approve-izin-nama" style="color:#0f172a;"></strong>?
+                    </p>
+                    <div class="modal-footer" style="padding-top:0;border-top:none;">
+                        <button data-close-modal="modal-approve-izin" class="btn-cancel">Batal</button>
+                        <button id="btn-konfirmasi-approve-izin"
+                            style="padding:9px 20px;border:none;border-radius:8px;
+                                background:#16a34a;
+                                font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+                                color:#fff;cursor:pointer;">
+                            Setujui Izin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ══ Modal Warning Approve Tanpa Dokumen ════════════════════════ -->
         <div id="modal-approve-warning" class="modal-overlay" style="display:none;">
             <div class="modal-box" style="max-width:420px;">
@@ -814,6 +839,12 @@ function bindEvents() {
         await prosesIzin(selectedIzinId, 'ditolak', catatan);
     });
 
+    // Konfirmasi setujui
+    document.getElementById('btn-konfirmasi-approve-izin')?.addEventListener('click', async () => {
+        closeModal('modal-approve-izin');
+        await prosesIzin(selectedIzinId, 'disetujui');
+    });
+
 }
 
 // ── Handle Approve (cek dokumen wajib terlebih dahulu) ────────────────────────
@@ -821,16 +852,20 @@ function _handleApprove(btn) {
     const wajib    = btn.dataset.wajib === '1';
     const dokStatus = btn.dataset.dokStatus ?? '';
     const id       = parseInt(btn.dataset.id);
+    const nama     = btn.dataset.nama ?? '—';
 
     // Izin wajib dokumen hanya boleh disetujui setelah status dokumen sudah_upload.
     if (wajib && dokStatus !== 'sudah_upload') {
-        toast('Dokumen wajib harus sudah diunggah sebelum izin bisa disetujui.', 'warning');
+        document.getElementById('modal-approve-warning-nama').textContent = nama;
+        selectedIzinId = id;
+        openModal('modal-approve-warning');
         return;
     }
 
-    // Langsung proses
+    // Buka modal konfirmasi
     selectedIzinId = id;
-    prosesIzin(id, 'disetujui');
+    document.getElementById('modal-approve-izin-nama').textContent = nama;
+    openModal('modal-approve-izin');
 }
 
 // ════════════════════════════════════════════════════════════════════════
