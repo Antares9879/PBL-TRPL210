@@ -223,14 +223,14 @@
         <span>Absensi</span>
     </a>
 
-    {{-- Pengajuan (izin/lembur) --}}
-    <a href="{{ url('/karyawan/izin') }}"
-       class="k-bottom-nav-item {{ (request()->is('karyawan/izin*') || request()->is('karyawan/lembur*')) ? 'k-bottom-nav-item--active' : '' }}"
-       aria-label="Pengajuan Izin"
-       aria-current="{{ (request()->is('karyawan/izin*') || request()->is('karyawan/lembur*')) ? 'page' : '' }}">
+    {{-- Pengajuan (izin/lembur) — menuju hub --}}
+    <a href="{{ url('/karyawan/pengajuan') }}"
+    class="k-bottom-nav-item {{ (request()->is('karyawan/pengajuan*') || request()->is('karyawan/izin*') || request()->is('karyawan/lembur*')) ? 'k-bottom-nav-item--active' : '' }}"
+    aria-label="Pengajuan"
+    aria-current="{{ (request()->is('karyawan/pengajuan*') || request()->is('karyawan/izin*') || request()->is('karyawan/lembur*')) ? 'page' : '' }}">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/>
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/>
         </svg>
         <span>Pengajuan</span>
     </a>
