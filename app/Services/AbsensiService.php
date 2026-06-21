@@ -76,7 +76,42 @@ class AbsensiService
         }
 
         $waktuCheckIn = now();
-        $menit_telat  = $this->hitungMenitTelat($waktuCheckIn, $jadwal->shift->jam_masuk);
+
+        // Guard: shift sudah berakhir — tidak bisa check-in setelah jam_pulang lewat
+        $jamMasukJadwal  = Carbon::parse(today()->format('Y-m-d') . ' ' . $jadwal->shift->jam_masuk);
+        $jamPulangJadwal = Carbon::parse(today()->format('Y-m-d') . ' ' . $jadwal->shift->jam_pulang);
+
+        // Handle shift malam: jam_pulang jatuh keesokan harinya
+        if ($jamPulangJadwal->lte($jamMasukJadwal)) {
+            $jamPulangJadwal->addDay();
+        }
+
+        if ($waktuCheckIn->gte($jamPulangJadwal)) {
+            // Catat alpa — idempotent via firstOrCreate, aman dipanggil berulang (retry/klik ganda)
+            Absensi::firstOrCreate(
+                ['id_jadwal' => $jadwal->id_jadwal],
+                [
+                    'id_karyawan'        => $karyawan->id_karyawan,
+                    'tanggal_absensi'    => today(),
+                    'menit_kerja_normal' => 0,
+                    'menit_telat'        => 0,
+                    'menit_pulang_cepat' => 0,
+                    'menit_kelebihan'    => 0,
+                    'status_kehadiran'   => Absensi::STATUS_ALPA,
+                    'status_validasi'    => Absensi::VALIDASI_DITOLAK,
+                    'catatan_penolakan'  => 'Karyawan tidak melakukan check-in sebelum jam kerja shift berakhir.',
+                    'waktu_validasi'     => now(),
+                ]
+            );
+
+            throw new \RuntimeException(
+                "Jam kerja shift {$jadwal->shift->nama_shift} sudah berakhir pukul "
+                . $jamPulangJadwal->format('H:i')
+                . '. Anda tidak dapat melakukan check-in dan absensi hari ini tercatat alpa.'
+            );
+        }
+
+       $menit_telat = $this->hitungMenitTelat($waktuCheckIn, $jadwal->shift->jam_masuk);
 
         $absensi = Absensi::create([
             'id_karyawan'        => $karyawan->id_karyawan,
@@ -99,6 +134,7 @@ class AbsensiService
             'menit_telat' => $menit_telat,
         ];
     }
+    
 
     // ════════════════════════════════════════════════════════════════════════
     //  CHECK-OUT (F01)
