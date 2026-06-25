@@ -99,6 +99,7 @@ Route::middleware('auth')->group(function () {
             Route::get('absensi',   [KaryawanPageController::class, 'absensi'])     ->name('absensi');
             Route::get('lembur',    [KaryawanPageController::class, 'ajukanLembur'])->name('lembur');
             Route::get('izin',      [KaryawanPageController::class, 'ajukanIzin'])     ->name('izin');
+            Route::get('pengajuan', [KaryawanPageController::class, 'pengajuan'])->name('pengajuan');
             Route::get('riwayat',   [KaryawanPageController::class, 'lihatAbsensi'])   ->name('riwayat');
             Route::get('notifikasi', [KaryawanPageController::class, 'notifikasi'])->name('notifikasi');
          });

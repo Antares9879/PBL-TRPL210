@@ -36,6 +36,12 @@ class PageController extends Controller
         return view('karyawan.absensi');
     }
 
+    /** Halaman hub pengajuan — pilihan lembur atau izin */
+    public function pengajuan()
+    {
+        return view('karyawan.pengajuan');
+    }
+    
     /** F03 — Ajukan lembur */
     public function ajukanLembur()
     {

@@ -115,7 +115,7 @@
                             Tanggal Selesai
                             <span style="color:var(--text-muted);font-weight:400;
                                          text-transform:none;letter-spacing:0;font-size:11px;">
-                                (Opsional — kosongkan untuk 1 hari)
+                                (Kosongkan untuk 1 hari)
                             </span>
                         </label>
                         <input type="date"
