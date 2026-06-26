@@ -9,10 +9,10 @@ use App\Models\DokumenIzin;
 use App\Models\JenisIzin;
 use App\Models\PengajuanIzin;
 use App\Services\NotifikasiService;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * IzinApiController — F04, F05
@@ -206,7 +206,6 @@ class IzinApiController extends Controller
     {
         $karyawan = Auth::user()->karyawan;
         $pengguna = Auth::user();
-
         $izin = PengajuanIzin::where('id_izin', $id)
             ->where('id_karyawan', $karyawan?->id_karyawan)
             ->first();
@@ -233,20 +232,43 @@ class IzinApiController extends Controller
         $ukuranKb = (int) ceil($file->getSize() / 1024);
 
         try {
-            $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time() . '.' . $ekstensi;
-            $folderPath = "dokumen-izin/{$izin->id_izin}";
-            
-            $uploadedFile = Storage::disk('cloudinary')->putFileAs($folderPath, $file, $fileName);
+            // ✅ Inisialisasi Cloudinary SDK v3
+            $cloudinary = new \Cloudinary\Cloudinary([
+                'cloud' => [
+                    'cloud_name' => config('filesystems.disks.cloudinary.cloud'),
+                    'api_key'    => config('filesystems.disks.cloudinary.key'),
+                    'api_secret' => config('filesystems.disks.cloudinary.secret'),
+                ],
+            ]);
 
-            $cloudName = config('filesystems.disks.cloudinary.cloud_name');
-            $resourceType = 'raw'; // sesuai mapping pdf di resource_types
-            $secureUrl = "https://res.cloudinary.com/{$cloudName}/{$resourceType}/upload/{$uploadedFile}";
+            $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time();
+
+            // ✅ Upload dengan parameter public access
+            $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
+                'folder'        => "ecogreen/dokumen-izin/{$izin->id_izin}",
+                'public_id'     => $fileName,
+                'resource_type' => 'auto',  // Auto-detect: image/pdf
+                'type'          => 'private',      // Private upload
+                // 'access_mode'   => 'public',      // PENTING: Set sebagai public
+                'overwrite'     => true,
+                "sign_url"      => true,
+                "expires_at"    => time() + 3600
+            ]);
+
+            $secureUrl = $result['secure_url'];
+            $publicId  = $result['public_id'];
+
+            \Log::info('Upload berhasil', [
+                'url' => $secureUrl,
+                'public_id' => $publicId,
+                'access_mode' => $result['access_mode'] ?? 'unknown',
+            ]);
 
             $dokumen = DokumenIzin::create([
                 'id_izin'              => $izin->id_izin,
                 'nama_file'            => $namaAsli,
                 'path_file'            => $secureUrl,
-                'cloudinary_public_id' => $uploadedFile,
+                'cloudinary_public_id' => $publicId,
                 'tipe_file'            => strtolower($ekstensi),
                 'ukuran_kb'            => $ukuranKb,
                 'diunggah_oleh'        => $pengguna->id_pengguna,
@@ -259,24 +281,24 @@ class IzinApiController extends Controller
                 'status'  => true,
                 'message' => 'Dokumen berhasil diunggah.',
                 'data'    => [
-                    'id_dokumen'   => $dokumen->id_dokumen,
-                    'nama_file'    => $dokumen->nama_file,
-                    'tipe_file'    => $dokumen->tipe_file,
-                    'ukuran_kb'    => $dokumen->ukuran_kb,
-                    'diunggah_pada'=> $dokumen->diunggah_pada->toDateTimeString(),
+                    'id_dokumen'    => $dokumen->id_dokumen,
+                    'nama_file'     => $dokumen->nama_file,
+                    'tipe_file'     => $dokumen->tipe_file,
+                    'ukuran_kb'     => $dokumen->ukuran_kb,
+                    'path_file'     => $secureUrl,
+                    'diunggah_pada' => $dokumen->diunggah_pada->toDateTimeString(),
                 ],
             ], 201);
 
         } catch (\Exception $e) {
-            \Log::error('Upload dokumen izin gagal', [
-                'id_izin' => $izin->id_izin,
-                'error'   => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
+            \Log::error('Upload gagal', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'status'  => false,
-                'message' => 'Gagal mengunggah dokumen: ' . $e->getMessage(),
+                'message' => 'Gagal upload: ' . $e->getMessage(),
                 'data'    => null,
             ], 500);
         }
