@@ -236,16 +236,16 @@ class IzinApiController extends Controller
             $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time() . '.' . $ekstensi;
             $folderPath = "dokumen-izin/{$izin->id_izin}";
             
-            $uploadedFile = Storage::disk('cloudinary')->putFileAs(
-                $folderPath,
-                $file,
-                $fileName
-            );
+            $uploadedFile = Storage::disk('cloudinary')->putFileAs($folderPath, $file, $fileName);
+
+            $cloudName = config('filesystems.disks.cloudinary.cloud_name');
+            $resourceType = 'raw'; // sesuai mapping pdf di resource_types
+            $secureUrl = "https://res.cloudinary.com/{$cloudName}/{$resourceType}/upload/{$uploadedFile}";
 
             $dokumen = DokumenIzin::create([
                 'id_izin'              => $izin->id_izin,
                 'nama_file'            => $namaAsli,
-                'path_file'            => Storage::disk('cloudinary')->url($uploadedFile),
+                'path_file'            => $secureUrl,
                 'cloudinary_public_id' => $uploadedFile,
                 'tipe_file'            => strtolower($ekstensi),
                 'ukuran_kb'            => $ukuranKb,
