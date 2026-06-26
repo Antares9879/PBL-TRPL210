@@ -81,6 +81,7 @@ async function apiFetch(url, options = {}) {
     try {
         response = await fetch(url, fetchOptions);
     } catch (networkError) {
+        console.error('Network error:', networkError);
         throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
     }
 
@@ -91,11 +92,38 @@ async function apiFetch(url, options = {}) {
         throw new Error('Unauthenticated');
     }
 
+    // Check content type — pastikan JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response:', {
+            status: response.status,
+            statusText: response.statusText,
+            contentType,
+        });
+
+        // Coba baca response sebagai text untuk debugging
+        let responseText = '';
+        try {
+            responseText = await response.text();
+            console.error('Response body:', responseText.substring(0, 500));
+        } catch (e) {
+            console.error('Cannot read response body:', e);
+        }
+
+        throw new Error(`Server mengembalikan respons bukan JSON (${response.status}). Tipe: ${contentType || 'unknown'}`);
+    }
+
     let json;
     try {
         json = await response.json();
-    } catch {
+    } catch (parseError) {
+        console.error('JSON parse error:', parseError);
         throw new Error(`Server mengembalikan respons tidak valid (${response.status}).`);
+    }
+
+    // Debug: log response untuk analisis
+    if (method !== 'GET') {
+        console.log('API Response:', { url, method, status: response.status, data: json });
     }
 
     return json;

@@ -11,9 +11,8 @@ use App\Models\PengajuanIzin;
 use App\Services\NotifikasiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * IzinApiController — F04, F05
@@ -228,43 +227,65 @@ class IzinApiController extends Controller
             ], 422);
         }
 
-        $file      = $request->file('dokumen');
-        $namaAsli  = $file->getClientOriginalName();
-        $ekstensi  = $file->getClientOriginalExtension();
-        $namaFile  = Str::uuid() . '.' . $ekstensi;
-        $folder    = "dokumen-izin/{$izin->id_izin}";
-        $path      = $file->storeAs($folder, $namaFile, 'local');
-        $ukuranKb  = (int) ceil($file->getSize() / 1024);
+        $file     = $request->file('dokumen');
+        $namaAsli = $file->getClientOriginalName();
+        $ekstensi = $file->getClientOriginalExtension();
+        $ukuranKb = (int) ceil($file->getSize() / 1024);
 
-        $dokumen = DokumenIzin::create([
-            'id_izin'       => $izin->id_izin,
-            'nama_file'     => $namaAsli,
-            'path_file'     => $path,
-            'tipe_file'     => strtolower($ekstensi),
-            'ukuran_kb'     => $ukuranKb,
-            'diunggah_oleh' => $pengguna->id_pengguna,
-            'diunggah_pada' => now(),
-        ]);
+        try {
+            $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time() . '.' . $ekstensi;
+            $folderPath = "dokumen-izin/{$izin->id_izin}";
+            
+            $uploadedFile = Storage::disk('cloudinary')->putFileAs(
+                $folderPath,
+                $file,
+                $fileName
+            );
 
-        $izin->update(['status_dokumen' => PengajuanIzin::DOKUMEN_SUDAH_UPLOAD]);
+            $dokumen = DokumenIzin::create([
+                'id_izin'              => $izin->id_izin,
+                'nama_file'            => $namaAsli,
+                'path_file'            => Storage::disk('cloudinary')->url($uploadedFile),
+                'cloudinary_public_id' => $uploadedFile,
+                'tipe_file'            => strtolower($ekstensi),
+                'ukuran_kb'            => $ukuranKb,
+                'diunggah_oleh'        => $pengguna->id_pengguna,
+                'diunggah_pada'        => now(),
+            ]);
 
-        return response()->json([
-            'status'  => true,
-            'message' => 'Dokumen berhasil diunggah.',
-            'data'    => [
-                'id_dokumen'   => $dokumen->id_dokumen,
-                'nama_file'    => $dokumen->nama_file,
-                'tipe_file'    => $dokumen->tipe_file,
-                'ukuran_kb'    => $dokumen->ukuran_kb,
-                'diunggah_pada'=> $dokumen->diunggah_pada->toDateTimeString(),
-            ],
-        ], 201);
+            $izin->update(['status_dokumen' => PengajuanIzin::DOKUMEN_SUDAH_UPLOAD]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Dokumen berhasil diunggah.',
+                'data'    => [
+                    'id_dokumen'   => $dokumen->id_dokumen,
+                    'nama_file'    => $dokumen->nama_file,
+                    'tipe_file'    => $dokumen->tipe_file,
+                    'ukuran_kb'    => $dokumen->ukuran_kb,
+                    'diunggah_pada'=> $dokumen->diunggah_pada->toDateTimeString(),
+                ],
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Upload dokumen izin gagal', [
+                'id_izin' => $izin->id_izin,
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal mengunggah dokumen: ' . $e->getMessage(),
+                'data'    => null,
+            ], 500);
+        }
     }
 
     /**
      * Download / stream dokumen izin.
      */
-    public function downloadDokumen(int $id, int $docId): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadDokumen(int $id, int $docId): JsonResponse
     {
         $karyawan = Auth::user()->karyawan;
 
@@ -284,7 +305,7 @@ class IzinApiController extends Controller
             ->where('id_izin', $izin->id_izin)
             ->first();
 
-        if (! $dokumen || ! Storage::exists($dokumen->path_file)) {
+        if (! $dokumen || ! $dokumen->path_file) {
             return response()->json([
                 'status'  => false,
                 'message' => 'File dokumen tidak ditemukan.',
@@ -292,7 +313,16 @@ class IzinApiController extends Controller
             ], 404);
         }
 
-        return Storage::download($dokumen->path_file, $dokumen->nama_file);
+        // path_file sekarang adalah Cloudinary URL — kembalikan langsung ke client
+        return response()->json([
+            'status'  => true,
+            'message' => 'URL dokumen berhasil dimuat.',
+            'data'    => [
+                'url'       => $dokumen->path_file,
+                'nama_file' => $dokumen->nama_file,
+                'tipe_file' => $dokumen->tipe_file,
+            ],
+        ]);
     }
 
     /**
