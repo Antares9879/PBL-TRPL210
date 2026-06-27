@@ -83,6 +83,8 @@ autorestart=true\n' > /etc/supervisord.conf
 # Start script
 RUN printf '#!/bin/sh\n\
 sed -i "s/__PORT__/${PORT:-8080}/g" /etc/nginx/http.d/default.conf\n\
+echo "=== PORT: ${PORT} ==="\n\
+cat /etc/nginx/http.d/default.conf\n\
 php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan config:cache\n\
@@ -91,7 +93,6 @@ php artisan view:cache\n\
 php artisan migrate --force\n\
 php artisan db:seed --force\n\
 php artisan storage:link\n\
-echo "=== PORT: $PORT ===" && cat /etc/nginx/http.d/default.conf
 supervisord -c /etc/supervisord.conf\n' > /start.sh && chmod +x /start.sh
 
 EXPOSE 8080
