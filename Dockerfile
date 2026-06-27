@@ -29,7 +29,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         zip \
         gd \
         bcmath \
-        tokenizer \
         fileinfo \
         opcache
 
