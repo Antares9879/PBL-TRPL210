@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Tambahkan 'karyawan' ke enum role_pelaku
         DB::statement("ALTER TABLE audit_log MODIFY COLUMN role_pelaku ENUM(
             'admin_outsource',
@@ -28,6 +32,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Kembalikan ke nilai enum sebelumnya (tanpa karyawan)
         DB::statement("ALTER TABLE audit_log MODIFY COLUMN role_pelaku ENUM(
             'admin_outsource',
