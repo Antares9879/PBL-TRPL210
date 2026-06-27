@@ -12,7 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Untuk MySQL, kita perlu mengubah kolom enum dengan ALTER TABLE
+        // Hanya jalankan di MySQL — syntax MODIFY COLUMN tidak support SQLite
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE audit_log MODIFY COLUMN jenis_data ENUM(
             'absensi',
             'lembur',
@@ -37,12 +41,12 @@ return new class extends Migration
         ) NOT NULL");
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        // Kembalikan ke nilai enum sebelumnya
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE audit_log MODIFY COLUMN jenis_data ENUM(
             'absensi',
             'lembur',
