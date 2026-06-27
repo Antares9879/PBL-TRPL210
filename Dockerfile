@@ -44,9 +44,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
         fileinfo \
         opcache
 
-# TAMBAHAN: Custom PHP config untuk upload & timeout
-RUN echo "upload_max_filesize = 2M" > /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 2M" >> /usr/local/etc/php/conf.d/uploads.ini \
+# ✅ TAMBAHAN: Custom PHP config untuk upload & timeout
+RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "max_execution_time = 120" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "max_input_time = 120" >> /usr/local/etc/php/conf.d/uploads.ini
@@ -105,6 +105,7 @@ autostart=true\n\
 autorestart=true\n' > /etc/supervisord.conf
 
 # PERBAIKAN: Start script dengan proper permission handling
+# Start script — PERBAIKAN: reset permissions SETELAH artisan commands
 RUN printf '#!/bin/sh\n\
 set -e\n\
 PORT=${PORT:-8080}\n\
@@ -116,19 +117,18 @@ php artisan config:clear || true\n\
 php artisan cache:clear || true\n\
 \n\
 # Run migrations\n\
-php artisan migrate --force\n\
+php artisan migrate --force || true\n\
 php artisan db:seed --force || true\n\
 \n\
 # Create storage link\n\
 php artisan storage:link || true\n\
 \n\
-# PENTING: Reset permissions SETELAH artisan commands\n\
-# Artisan bisa membuat file baru dengan owner root!\n\
+# ✅ PENTING: Reset permissions SETELAH artisan commands\n\
+# Artisan membuat file dengan owner root, kita ubah ke www-data\n\
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache\n\
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache\n\
 \n\
-# Jalankan cache commands sebagai www-data\n\
-# Agar file cache dimiliki www-data, bukan root\n\
+# ✅ Jalankan cache commands sebagai www-data\n\
 su -s /bin/sh www-data -c "php artisan config:cache"\n\
 su -s /bin/sh www-data -c "php artisan route:cache"\n\
 su -s /bin/sh www-data -c "php artisan view:cache"\n\
