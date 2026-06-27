@@ -8,7 +8,6 @@ use App\Models\Pengguna;
 use App\Models\PengajuanIzin;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -85,7 +84,7 @@ class DokumenIzinAdminController extends Controller
             ->where('id_izin', $izin->id_izin)
             ->first();
 
-        if (! $dokumen || ! Storage::exists($dokumen->path_file)) {
+       if (! $dokumen || ! $dokumen->path_file) {
             return response()->json([
                 'status'  => false,
                 'message' => 'File dokumen tidak ditemukan.',
@@ -93,25 +92,15 @@ class DokumenIzinAdminController extends Controller
             ], 404);
         }
 
-        // Tentukan MIME type dari ekstensi file
-        $mimeMap = [
-            'pdf'  => 'application/pdf',
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png'  => 'image/png',
-        ];
-
-        $mime        = $mimeMap[strtolower($dokumen->tipe_file)] ?? 'application/octet-stream';
-        $isInline    = in_array(strtolower($dokumen->tipe_file), ['pdf', 'jpg', 'jpeg', 'png']);
-        $disposition = $isInline ? 'inline' : 'attachment';
-
-        return Storage::response(
-            $dokumen->path_file,
-            $dokumen->nama_file,
-            [
-                'Content-Type'        => $mime,
-                'Content-Disposition' => "{$disposition}; filename=\"{$dokumen->nama_file}\"",
-            ]
-        );
+        // path_file sekarang adalah Cloudinary URL — kembalikan ke client untuk di-render frontend
+        return response()->json([
+            'status'  => true,
+            'message' => 'URL dokumen berhasil dimuat.',
+            'data'    => [
+                'url'       => $dokumen->path_file,
+                'nama_file' => $dokumen->nama_file,
+                'tipe_file' => $dokumen->tipe_file,
+            ],
+        ]);
     }
 }

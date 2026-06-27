@@ -252,7 +252,7 @@ function _renderDokumenList(izinRow) {
                     <span class="dok-list-meta">${esc(d.tipe_file?.toUpperCase() ?? '')} · ${d.ukuran_kb ?? 0} KB</span>
                 </div>
                 <button class="dok-buka-btn"
-                    onclick="window.open('/api/admin/izin/${izinRow.id_izin}/dokumen/${d.id_dokumen}', '_blank')"
+                    onclick="(async()=>{try{const r=await fetch('/api/admin/izin/${izinRow.id_izin}/dokumen/${d.id_dokumen}', {headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name=csrf-token]')?.content||''}});const j=await r.json();if(j.status&&j.data?.url)window.open(j.data.url,'_blank');}catch(e){alert('Gagal membuka dokumen.');}})();"
                     title="Buka di tab baru">
                     <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -286,9 +286,8 @@ function _renderDokumenList(izinRow) {
  * Load preview file di dalam modal.
  * PDF → iframe, gambar → img, lainnya → pesan download
  */
-function _loadPreview(idIzin, idDok, tipe, nama) {
+async function _loadPreview(idIzin, idDok, tipe, nama) {
     const area = document.getElementById('dok-preview-area');
-    const url  = `/api/admin/izin/${idIzin}/dokumen/${idDok}`;
     const ext  = (tipe ?? '').toLowerCase();
 
     // Update active state di daftar
@@ -297,6 +296,28 @@ function _loadPreview(idIzin, idDok, tipe, nama) {
             parseInt(el.dataset.dok) === idDok);
     });
 
+    // Tampilkan loading dulu
+    area.innerHTML = `
+        <div class="dok-preview-loading" id="dok-preview-loading">
+            <div class="dok-preview-spinner"></div>
+            <span>Memuat dokumen…</span>
+        </div>`;
+
+    // Fetch URL dari Cloudinary via API
+    let fileUrl;
+    try {
+        const res  = await apiFetch(`/api/admin/izin/${idIzin}/dokumen/${idDok}`);
+        const json = await res.json();
+        if (!json.status || !json.data?.url) {
+            area.innerHTML = window._previewError('', nama);
+            return;
+        }
+        fileUrl = json.data.url;
+    } catch {
+        area.innerHTML = window._previewError('', nama);
+        return;
+    }
+
     if (ext === 'pdf') {
         area.innerHTML = `
             <div class="dok-preview-loading" id="dok-preview-loading">
@@ -304,11 +325,11 @@ function _loadPreview(idIzin, idDok, tipe, nama) {
                 <span>Memuat PDF…</span>
             </div>
             <iframe
-                src="${url}#toolbar=1&navpanes=0"
+                src="${fileUrl}#toolbar=1&navpanes=0"
                 class="dok-preview-iframe"
                 id="dok-iframe"
                 onload="document.getElementById('dok-preview-loading').style.display='none'"
-                onerror="document.getElementById('dok-preview-area').innerHTML = window._previewError('${url}', '${esc(nama)}')">
+                onerror="document.getElementById('dok-preview-area').innerHTML = window._previewError('', '${esc(nama)}')">
             </iframe>`;
     } else if (['jpg','jpeg','png'].includes(ext)) {
         area.innerHTML = `
@@ -317,11 +338,11 @@ function _loadPreview(idIzin, idDok, tipe, nama) {
                 <span>Memuat gambar…</span>
             </div>
             <img
-                src="${url}"
+                src="${fileUrl}"
                 class="dok-preview-img"
                 alt="${esc(nama)}"
                 onload="document.getElementById('dok-preview-loading').style.display='none'"
-                onerror="document.getElementById('dok-preview-area').innerHTML = window._previewError('${url}', '${esc(nama)}')">`;
+                onerror="document.getElementById('dok-preview-area').innerHTML = window._previewError('', '${esc(nama)}')">`;
     } else {
         area.innerHTML = `
             <div class="dok-preview-unsupported">
@@ -330,7 +351,7 @@ function _loadPreview(idIzin, idDok, tipe, nama) {
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/>
                 </svg>
                 <p>Format <strong>${esc(ext.toUpperCase())}</strong> tidak bisa dipreview.</p>
-                <a href="${url}" target="_blank" class="btn-primary-sm" style="margin-top:12px;">
+                <a href="${fileUrl}" target="_blank" class="btn-primary-sm" style="margin-top:12px;">
                     Download File
                 </a>
             </div>`;
