@@ -83,7 +83,6 @@ autorestart=true\n' > /etc/supervisord.conf
 # Start script
 RUN printf '#!/bin/sh\n\
 php artisan config:clear\n\
-php artisan cache:clear\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
