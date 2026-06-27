@@ -526,7 +526,6 @@ function setUploadFile(file) {
 
 async function handleUploadConfirm() {
     if (!state.uploadFile || !state.uploadTargetIzinId || state.isUploading) return;
-
     state.isUploading = true;
     setUploadLoading(true);
     hideUploadAlert();
@@ -534,16 +533,28 @@ async function handleUploadConfirm() {
     const formData = new FormData();
     formData.append('dokumen', state.uploadFile);
 
+    // ✅ Buat AbortController untuk upload
+    const controller = new AbortController();
+    const UPLOAD_TIMEOUT = 90000; // 90 detik untuk upload
+    
+    // Auto abort setelah 90 detik
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+    }, UPLOAD_TIMEOUT);
+
     try {
         const res = await apiFetch(`/api/karyawan/izin/${state.uploadTargetIzinId}/dokumen`, {
             method: 'POST',
             body:   formData,
+            signal: controller.signal,  // ✅ Pass signal ke apiFetch
+            timeout: UPLOAD_TIMEOUT,    // ✅ Atau bisa pakai timeout langsung
         });
 
-        // Debug: log response untuk melihat struktur actual
+        // Clear timeout jika berhasil
+        clearTimeout(timeoutId);
+
         console.log('Upload response:', res);
 
-        // Guard: pastikan response ada dan memiliki struktur yang valid
         if (!res || typeof res !== 'object') {
             console.error('Invalid response format:', res);
             showUploadAlert('Respons server tidak valid. Silakan coba lagi.', 'error');
@@ -562,14 +573,23 @@ async function handleUploadConfirm() {
         state.uploadFile = null;
         state.uploadTargetIzinId = null;
 
-        // Reload riwayat untuk tampilkan status dokumen terbaru
         loadRiwayatIzin(state.riwayatPage);
 
     } catch (err) {
         console.error('Upload error:', err);
-        const errorMsg = err?.message || 'Terjadi kesalahan saat mengunggah dokumen.';
-        showUploadAlert(errorMsg, 'error');
+        
+        // ✅ Handle timeout error
+        if (err.name === 'AbortError' || err.message?.includes('timeout')) {
+            showUploadAlert(
+                'Upload memakan waktu terlalu lama. Periksa koneksi internet Anda dan coba lagi.', 
+                'error'
+            );
+        } else {
+            const errorMsg = err?.message || 'Terjadi kesalahan saat mengunggah dokumen.';
+            showUploadAlert(errorMsg, 'error');
+        }
     } finally {
+        clearTimeout(timeoutId); // Pastikan timeout selalu di-clear
         state.isUploading = false;
         setUploadLoading(false);
     }
