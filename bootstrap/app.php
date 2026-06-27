@@ -28,7 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         // ── Trust semua proxy (penting untuk produksi di balik load balancer) ─
-        $middleware->trustProxies(headers: \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR);
+        // Wajib include HEADER_X_FORWARDED_PROTO, bukan cuma FOR — kalau cuma FOR,
+        // Laravel tidak percaya header X-Forwarded-Proto dari Railway dan akan
+        // generate semua asset/redirect URL sebagai http://, bukan https:// (mixed content).
+        $middleware->trustProxies(headers: \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR
+            | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST
+            | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT
+            | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO);
 
     })
     ->withSchedule(function ($schedule) {
