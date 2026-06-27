@@ -24,6 +24,7 @@ export default defineConfig({
 
                 // ── JS auth ─────────────────────────────────────────────────
                 'resources/js/auth/login.js',
+                 'resources/js/login-session-check.js',
 
                 // ── JS Super Admin ──────────────────────────────────────────
                 'resources/js/super-admin/dashboard.js',
