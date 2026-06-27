@@ -13,6 +13,7 @@ use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * IzinApiController — F04, F05
@@ -204,13 +205,21 @@ class IzinApiController extends Controller
      */
     public function uploadDokumen(UploadDokumenRequest $request, int $id): JsonResponse
     {
+        // ✅ Naikkan limit SEBELUM proses apapun
+        set_time_limit(120);
+        ini_set('memory_limit', '256M');
+        
+        // ✅ Disable output buffering agar tidak ada corrupt response
+        if (ob_get_level()) ob_end_clean();
+
         $karyawan = Auth::user()->karyawan;
         $pengguna = Auth::user();
+        
         $izin = PengajuanIzin::where('id_izin', $id)
             ->where('id_karyawan', $karyawan?->id_karyawan)
             ->first();
 
-        if (! $izin) {
+        if (!$izin) {
             return response()->json([
                 'status'  => false,
                 'message' => 'Pengajuan izin tidak ditemukan.',
@@ -231,49 +240,36 @@ class IzinApiController extends Controller
         $ekstensi = $file->getClientOriginalExtension();
         $ukuranKb = (int) ceil($file->getSize() / 1024);
 
+        Log::info('Upload dokumen dimulai', [
+            'izin_id'   => $izin->id_izin,
+            'file'      => $namaAsli,
+            'size_kb'   => $ukuranKb,
+            'extension' => $ekstensi,
+        ]);
+
         try {
-            // ✅ Naikkan time limit untuk proses upload
-            set_time_limit(120); // 2 menit
-            ini_set('memory_limit', '256M');
-
-            // ✅ Inisialisasi Cloudinary SDK v3
-            $cloudinary = new \Cloudinary\Cloudinary([
-                'cloud' => [
-                    'cloud_name' => config('filesystems.disks.cloudinary.cloud'),
-                    'api_key'    => config('filesystems.disks.cloudinary.key'),
-                    'api_secret' => config('filesystems.disks.cloudinary.secret'),
-                ],
-                'url' => [
-                    'secure' => true,
-                ],
-            ]);
-
+            // GUNAKAN FACADE - lebih stabil, sudah di-configure Laravel
             $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time();
+            $folder   = "ecogreen/dokumen-izin/{$izin->id_izin}";
 
-            \Log::info('Mulai upload ke Cloudinary', [
-                'file' => $namaAsli,
-                'size_kb' => $ukuranKb,
-                'izin_id' => $izin->id_izin,
-            ]);
-
-            // ✅ Upload dengan timeout yang lebih panjang
-            $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
-                'folder'        => "ecogreen/dokumen-izin/{$izin->id_izin}",
+            // Upload via Facade dengan parameter yang VALID
+            $uploaded = Cloudinary::upload($file->getRealPath(), [
+                'folder'        => $folder,
                 'public_id'     => $fileName,
                 'resource_type' => 'auto',
-                'type'          => 'private',
                 'overwrite'     => true,
-                'timeout'       => 60, // ✅ Timeout 60 detik untuk upload ke Cloudinary
+                // HAPUS: 'sign_url', 'expires_at' — bukan parameter upload!
             ]);
 
-            $secureUrl = $result['secure_url'];
-            $publicId  = $result['public_id'];
+            $secureUrl = $uploaded->getSecurePath();
+            $publicId  = $uploaded->getPublicId();
 
-            \Log::info('Upload Cloudinary berhasil', [
-                'url' => $secureUrl,
+            Log::info('Upload Cloudinary berhasil', [
+                'url'       => $secureUrl,
                 'public_id' => $publicId,
             ]);
 
+            // Simpan ke database
             $dokumen = DokumenIzin::create([
                 'id_izin'              => $izin->id_izin,
                 'nama_file'            => $namaAsli,
@@ -300,25 +296,20 @@ class IzinApiController extends Controller
                 ],
             ], 201);
 
-        } catch (\Cloudinary\Api\Exception\ApiError $e) {
-            // ✅ Handle error spesifik Cloudinary
-            \Log::error('Cloudinary API Error', [
-                'error' => $e->getMessage(),
-                'code' => $e->getCode(),
+        } catch (\Throwable $e) {
+            // Catch \Throwable (bukan hanya \Exception) untuk tangkap semua error
+            Log::error('Upload dokumen gagal', [
+                'error'   => $e->getMessage(),
+                'class'   => get_class($e),
+                'code'    => $e->getCode(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
             ]);
+
             return response()->json([
                 'status'  => false,
-                'message' => 'Gagal upload ke server dokumen: ' . $e->getMessage(),
-                'data'    => null,
-            ], 500);
-        } catch (\Exception $e) {
-            \Log::error('Upload gagal', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'status'  => false,
-                'message' => 'Gagal upload: ' . $e->getMessage(),
+                'message' => 'Gagal mengunggah dokumen: ' . $e->getMessage(),
                 'data'    => null,
             ], 500);
         }

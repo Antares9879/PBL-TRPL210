@@ -533,37 +533,29 @@ async function handleUploadConfirm() {
     const formData = new FormData();
     formData.append('dokumen', state.uploadFile);
 
-    // ✅ Buat AbortController untuk upload
     const controller = new AbortController();
-    const UPLOAD_TIMEOUT = 90000; // 90 detik untuk upload
-    
-    // Auto abort setelah 90 detik
-    const timeoutId = setTimeout(() => {
-        controller.abort();
-    }, UPLOAD_TIMEOUT);
+    const UPLOAD_TIMEOUT = 120000; // 120 detik (disamakan dengan backend)
+    const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT);
 
     try {
-        const res = await apiFetch(`/api/karyawan/izin/${state.uploadTargetIzinId}/dokumen`, {
-            method: 'POST',
-            body:   formData,
-            signal: controller.signal,  // ✅ Pass signal ke apiFetch
-            timeout: UPLOAD_TIMEOUT,    // ✅ Atau bisa pakai timeout langsung
-        });
-
-        // Clear timeout jika berhasil
+        const res = await apiFetch(
+            `/api/karyawan/izin/${state.uploadTargetIzinId}/dokumen`, 
+            {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal,
+            }
+        );
+        
         clearTimeout(timeoutId);
 
-        console.log('Upload response:', res);
-
         if (!res || typeof res !== 'object') {
-            console.error('Invalid response format:', res);
             showUploadAlert('Respons server tidak valid. Silakan coba lagi.', 'error');
             return;
         }
 
         if (!res.status) {
-            const errorMsg = res.message || 'Gagal mengunggah dokumen.';
-            showUploadAlert(errorMsg, 'error');
+            showUploadAlert(res.message || 'Gagal mengunggah dokumen.', 'error');
             return;
         }
 
@@ -572,24 +564,27 @@ async function handleUploadConfirm() {
 
         state.uploadFile = null;
         state.uploadTargetIzinId = null;
-
         loadRiwayatIzin(state.riwayatPage);
 
     } catch (err) {
         console.error('Upload error:', err);
         
-        // ✅ Handle timeout error
-        if (err.name === 'AbortError' || err.message?.includes('timeout')) {
+        if (err.name === 'AbortError') {
             showUploadAlert(
-                'Upload memakan waktu terlalu lama. Periksa koneksi internet Anda dan coba lagi.', 
+                'Upload terlalu lama (timeout). Coba lagi atau gunakan file lebih kecil.', 
+                'error'
+            );
+        } else if (err.message?.includes('bukan JSON')) {
+            // ✅ Ini tanda server crash (ERR_HTTP2_PROTOCOL_ERROR)
+            showUploadAlert(
+                'Server mengalami masalah saat memproses upload. Silakan coba beberapa saat lagi.', 
                 'error'
             );
         } else {
-            const errorMsg = err?.message || 'Terjadi kesalahan saat mengunggah dokumen.';
-            showUploadAlert(errorMsg, 'error');
+            showUploadAlert(err?.message || 'Terjadi kesalahan saat mengunggah dokumen.', 'error');
         }
     } finally {
-        clearTimeout(timeoutId); // Pastikan timeout selalu di-clear
+        clearTimeout(timeoutId);
         state.isUploading = false;
         setUploadLoading(false);
     }
