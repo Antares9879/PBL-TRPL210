@@ -1,11 +1,22 @@
+# ---- Stage 1: Build frontend assets (Vite + Tailwind) ----
+FROM node:20-alpine AS frontend-build
+WORKDIR /app
+
+# Copy lockfiles first for layer caching
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Copy rest of source (Tailwind v4 + Blade JIT scans resources/views & resources/js)
+COPY . .
+RUN npm run build
+
+# ---- Stage 2: PHP application ----
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies
+# Install system dependencies (nodejs/npm tidak diperlukan lagi di sini)
 RUN apk add --no-cache \
     nginx \
     supervisor \
-    nodejs \
-    npm \
     curl \
     curl-dev \
     zip \
@@ -46,6 +57,9 @@ RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interactio
 # Copy application files
 COPY . .
 
+# Overwrite public/build with assets built in the frontend-build stage
+COPY --from=frontend-build /app/public/build ./public/build
+
 # Run post-install scripts
 RUN composer run-script post-autoload-dump || true
 
@@ -53,9 +67,9 @@ RUN composer run-script post-autoload-dump || true
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Nginx config template (PORT akan disubstitusi saat runtime)
+# Nginx config template (placeholder __PORT__ disubstitusi saat runtime di start.sh)
 RUN printf 'server {\n\
-    listen 8080;\n\
+    listen __PORT__;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
     location / {\n\
@@ -82,6 +96,9 @@ autorestart=true\n' > /etc/supervisord.conf
 
 # Start script
 RUN printf '#!/bin/sh\n\
+PORT=${PORT:-8080}\n\
+sed -i "s/__PORT__/$PORT/" /etc/nginx/http.d/default.conf\n\
+echo "Nginx listening on port: $PORT"\n\
 php artisan config:clear\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
