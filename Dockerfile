@@ -72,6 +72,7 @@ RUN printf 'server {\n\
     listen __PORT__;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
+    client_max_body_size 10M;\n\
     location / {\n\
         try_files $uri $uri/ /index.php?$query_string;\n\
     }\n\
@@ -79,6 +80,7 @@ RUN printf 'server {\n\
         fastcgi_pass 127.0.0.1:9000;\n\
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\
         include fastcgi_params;\n\
+        fastcgi_read_timeout 120;\n\
     }\n\
 }\n' > /etc/nginx/http.d/default.conf
 
@@ -110,5 +112,8 @@ chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache\n
 supervisord -c /etc/supervisord.conf\n' > /start.sh && chmod +x /start.sh
 
 EXPOSE 8080
+
+RUN echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/custom.ini \
+ && echo "post_max_size = 12M" >> /usr/local/etc/php/conf.d/custom.ini
 
 CMD ["/start.sh"]
