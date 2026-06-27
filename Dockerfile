@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     curl \
+    curl-dev \
     zip \
     unzip \
     git \
@@ -17,7 +18,6 @@ RUN apk add --no-cache \
     oniguruma-dev \
     libxml2-dev \
     freetype-dev
-
 # Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
