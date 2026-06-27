@@ -53,9 +53,9 @@ RUN composer run-script post-autoload-dump || true
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Nginx config
+# Nginx config template (PORT akan disubstitusi saat runtime)
 RUN printf 'server {\n\
-    listen $PORT;\n\
+    listen __PORT__;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
     location / {\n\
@@ -82,6 +82,8 @@ autorestart=true\n' > /etc/supervisord.conf
 
 # Start script
 RUN printf '#!/bin/sh\n\
+sed -i "s/__PORT__/${PORT:-8080}/g" /etc/nginx/http.d/default.conf\n\
+php artisan config:clear\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
