@@ -232,6 +232,10 @@ class IzinApiController extends Controller
         $ukuranKb = (int) ceil($file->getSize() / 1024);
 
         try {
+            // ✅ Naikkan time limit untuk proses upload
+            set_time_limit(120); // 2 menit
+            ini_set('memory_limit', '256M');
+
             // ✅ Inisialisasi Cloudinary SDK v3
             $cloudinary = new \Cloudinary\Cloudinary([
                 'cloud' => [
@@ -239,29 +243,35 @@ class IzinApiController extends Controller
                     'api_key'    => config('filesystems.disks.cloudinary.key'),
                     'api_secret' => config('filesystems.disks.cloudinary.secret'),
                 ],
+                'url' => [
+                    'secure' => true,
+                ],
             ]);
 
             $fileName = pathinfo($namaAsli, PATHINFO_FILENAME) . '_' . time();
 
-            // ✅ Upload dengan parameter public access
+            \Log::info('Mulai upload ke Cloudinary', [
+                'file' => $namaAsli,
+                'size_kb' => $ukuranKb,
+                'izin_id' => $izin->id_izin,
+            ]);
+
+            // ✅ Upload dengan timeout yang lebih panjang
             $result = $cloudinary->uploadApi()->upload($file->getRealPath(), [
                 'folder'        => "ecogreen/dokumen-izin/{$izin->id_izin}",
                 'public_id'     => $fileName,
-                'resource_type' => 'auto',  // Auto-detect: image/pdf
-                'type'          => 'private',      // Private upload
-                // 'access_mode'   => 'public',      // PENTING: Set sebagai public
+                'resource_type' => 'auto',
+                'type'          => 'private',
                 'overwrite'     => true,
-                "sign_url"      => true,
-                "expires_at"    => time() + 3600
+                'timeout'       => 60, // ✅ Timeout 60 detik untuk upload ke Cloudinary
             ]);
 
             $secureUrl = $result['secure_url'];
             $publicId  = $result['public_id'];
 
-            \Log::info('Upload berhasil', [
+            \Log::info('Upload Cloudinary berhasil', [
                 'url' => $secureUrl,
                 'public_id' => $publicId,
-                'access_mode' => $result['access_mode'] ?? 'unknown',
             ]);
 
             $dokumen = DokumenIzin::create([
@@ -290,12 +300,22 @@ class IzinApiController extends Controller
                 ],
             ], 201);
 
+        } catch (\Cloudinary\Api\Exception\ApiError $e) {
+            // ✅ Handle error spesifik Cloudinary
+            \Log::error('Cloudinary API Error', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+            ]);
+            return response()->json([
+                'status'  => false,
+                'message' => 'Gagal upload ke server dokumen: ' . $e->getMessage(),
+                'data'    => null,
+            ], 500);
         } catch (\Exception $e) {
             \Log::error('Upload gagal', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
             return response()->json([
                 'status'  => false,
                 'message' => 'Gagal upload: ' . $e->getMessage(),

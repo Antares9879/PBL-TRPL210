@@ -38,23 +38,29 @@ function getCsrfToken() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Wrapper fetch untuk API endpoint Laravel Sanctum (stateful SPA).
- * Selalu kirim CSRF token, credentials: 'same-origin'.
- * Response format: { status: bool, message: string, data: any }
- *
- * @param {string} url       - Relative URL, contoh: '/api/karyawan/check-in'
- * @param {object} [options] - Fetch options tambahan
- * @param {string} [options.method]  - HTTP method (default: 'GET')
- * @param {object|FormData} [options.body] - Request body
- * @param {object} [options.headers] - Header tambahan
- * @returns {Promise<{status: boolean, message: string, data: any}>}
- * @throws {Error} jika network error atau response tidak bisa di-parse
- */
+Wrapper fetch untuk API endpoint Laravel Sanctum (stateful SPA).
+Selalu kirim CSRF token, credentials: 'same-origin'.
+Response format: { status: bool, message: string, data: any }
+@param {string} url       - Relative URL, contoh: '/api/karyawan/check-in'
+@param {object} [options] - Fetch options tambahan
+@param {string} [options.method]  - HTTP method (default: 'GET')
+@param {object|FormData} [options.body] - Request body
+@param {object} [options.headers] - Header tambahan
+@param {AbortSignal} [options.signal] - AbortController signal untuk cancel request
+@param {number} [options.timeout] - Timeout dalam ms (default: 30000 untuk GET, 90000 untuk POST/PUT)
+@returns {Promise<{status: boolean, message: string, data: any}>}
+@throws {Error} jika network error atau response tidak bisa di-parse
+*/
 async function apiFetch(url, options = {}) {
-    const { method = 'GET', body = null, headers = {} } = options;
-
+    const { 
+        method = 'GET', 
+        body = null, 
+        headers = {},
+        signal = null,        // ✅ Tambah signal support
+        timeout = null,       // ✅ Tambah timeout support
+    } = options;
+    
     const isFormData = body instanceof FormData;
-
     const requestHeaders = {
         'X-CSRF-TOKEN': getCsrfToken(),
         'X-Requested-With': 'XMLHttpRequest',
@@ -77,11 +83,50 @@ async function apiFetch(url, options = {}) {
         fetchOptions.body = isFormData ? body : JSON.stringify(body);
     }
 
+    // ✅ Setup AbortController dengan timeout
+    let timeoutId = null;
+    let controller = null;
+    
+    if (signal) {
+        // Jika signal sudah diberikan dari caller, gunakan itu
+        fetchOptions.signal = signal;
+    } else if (timeout !== null && timeout > 0) {
+        // Buat AbortController baru dengan timeout
+        controller = new AbortController();
+        fetchOptions.signal = controller.signal;
+        
+        timeoutId = setTimeout(() => {
+            controller.abort();
+        }, timeout);
+    } else {
+        // Default timeout berdasarkan method
+        const defaultTimeout = (method === 'GET') ? 30000 : 90000;
+        controller = new AbortController();
+        fetchOptions.signal = controller.signal;
+        
+        timeoutId = setTimeout(() => {
+            controller.abort();
+        }, defaultTimeout);
+    }
+
     let response;
     try {
         response = await fetch(url, fetchOptions);
+        
+        // Clear timeout jika request berhasil
+        if (timeoutId) clearTimeout(timeoutId);
+        
     } catch (networkError) {
+        // Clear timeout
+        if (timeoutId) clearTimeout(timeoutId);
+        
         console.error('Network error:', networkError);
+        
+        // ✅ Bedakan antara timeout dan network error biasa
+        if (networkError.name === 'AbortError') {
+            throw new Error(`Request timeout setelah ${timeout ?? 90000}ms. Server tidak merespons.`);
+        }
+        
         throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
     }
 
@@ -100,7 +145,7 @@ async function apiFetch(url, options = {}) {
             statusText: response.statusText,
             contentType,
         });
-
+        
         // Coba baca response sebagai text untuk debugging
         let responseText = '';
         try {
