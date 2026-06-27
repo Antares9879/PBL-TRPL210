@@ -15,8 +15,6 @@ use App\Services\NotifikasiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DokumenApiController extends Controller
 {
@@ -327,7 +325,7 @@ class DokumenApiController extends Controller
         ], $status ? 200 : 422);
     }
 
-    public function streamDokumen(int $id, int $docId): JsonResponse|StreamedResponse
+    public function streamDokumen(int $id, int $docId): JsonResponse
     {
         $izin = PengajuanIzin::query();
         $this->applyDokumenVerifikasiScope($izin);
@@ -345,7 +343,7 @@ class DokumenApiController extends Controller
             ->where('id_izin', $izin->id_izin)
             ->first();
 
-        if (! $dokumen || ! Storage::exists($dokumen->path_file)) {
+        if (! $dokumen || ! $dokumen->path_file) {
             return response()->json([
                 'status' => false,
                 'message' => 'File dokumen tidak ditemukan.',
@@ -353,25 +351,15 @@ class DokumenApiController extends Controller
             ], 404);
         }
 
-        $mimeMap = [
-            'pdf' => 'application/pdf',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-        ];
-
-        $mime = $mimeMap[strtolower($dokumen->tipe_file)] ?? 'application/octet-stream';
-        $isInline = in_array(strtolower($dokumen->tipe_file), ['pdf', 'jpg', 'jpeg', 'png']);
-        $disposition = $isInline ? 'inline' : 'attachment';
-
-        return Storage::response(
-            $dokumen->path_file,
-            $dokumen->nama_file,
-            [
-                'Content-Type' => $mime,
-                'Content-Disposition' => "{$disposition}; filename=\"{$dokumen->nama_file}\"",
-            ]
-        );
+        return response()->json([
+            'status' => true,
+            'message' => 'URL dokumen berhasil dimuat.',
+            'data' => [
+                'url'       => $dokumen->path_file,
+                'nama_file' => $dokumen->nama_file,
+                'tipe_file' => $dokumen->tipe_file,
+            ],
+        ]);
     }
 
     private function notifikasiDokumenTidakLengkap(PengajuanIzin $izin, int $idPengirim): void

@@ -658,7 +658,7 @@ function renderModalDetail(data) {
                             data-tipe="${esc(doc.tipe_file || '')}">
                             Preview
                         </button>
-                        <button class="hr-btn-sm hr-btn-outline" onclick="window.open('/api/hr/dokumen/${data.id_izin}/stream/${doc.id_dokumen}', '_blank')">Buka di Tab Baru</button>
+                        <button class="hr-btn-sm hr-btn-outline" onclick="window._bukaDokumenTabBaru(${data.id_izin}, ${doc.id_dokumen})">Buka di Tab Baru</button>
                     </div>
                 </div>
             `;
@@ -680,28 +680,46 @@ function renderModalDetail(data) {
     el.modalDetailBody.innerHTML = html;
 }
 
-function previewDokumen(idIzin, idDok, namaFile, tipe) {
+async function previewDokumen(idIzin, idDok, namaFile, tipe) {
     if (!idIzin || !idDok) return;
 
-    const url = `/api/hr/dokumen/${idIzin}/stream/${idDok}`;
     const ext = String(tipe || '').toLowerCase();
+
+    // Tampilkan lightbox dengan loading state dulu
     el.lightboxNamaFile.textContent = namaFile;
-    el.btnLightboxTabBaru.onclick = () => window.open(url, '_blank');
+    el.lightboxContent.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#94a3b8;">
+            <span>Memuat dokumen…</span>
+        </div>`;
+    el.lightbox.style.display = 'flex';
+
+    // Fetch URL Cloudinary dari API
+    let fileUrl;
+    try {
+        const json = await apiFetch(`/api/hr/dokumen/${idIzin}/stream/${idDok}`);
+        if (!json.status || !json.data?.url) {
+            el.lightboxContent.innerHTML = `<p style="color:#ef4444;text-align:center;">Gagal memuat dokumen.</p>`;
+            return;
+        }
+        fileUrl = json.data.url;
+    } catch {
+        el.lightboxContent.innerHTML = `<p style="color:#ef4444;text-align:center;">Gagal memuat dokumen.</p>`;
+        return;
+    }
+
+    el.btnLightboxTabBaru.onclick = () => window.open(fileUrl, '_blank');
 
     if (ext === 'pdf') {
-        el.lightboxContent.innerHTML = `<iframe src="${url}#toolbar=1" style="width:100%;height:100%;border:none;"></iframe>`;
+        el.lightboxContent.innerHTML = `<iframe src="${fileUrl}#toolbar=1" style="width:100%;height:100%;border:none;"></iframe>`;
     } else if (['jpg', 'jpeg', 'png'].includes(ext)) {
-        el.lightboxContent.innerHTML = `<img src="${url}" alt="${esc(namaFile)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+        el.lightboxContent.innerHTML = `<img src="${fileUrl}" alt="${esc(namaFile)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
     } else {
         el.lightboxContent.innerHTML = `
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#94a3b8;">
                 <p>Format ${esc(ext.toUpperCase() || 'FILE')} belum didukung untuk preview.</p>
-                <button class="hr-btn-primary" onclick="window.open('${url}', '_blank')" style="margin-top:12px;">Download File</button>
-            </div>
-        `;
+                <button class="hr-btn-primary" onclick="window.open('${fileUrl}', '_blank')" style="margin-top:12px;">Download File</button>
+            </div>`;
     }
-
-    el.lightbox.style.display = 'flex';
 }
 
 function closeLightbox() {
@@ -814,3 +832,16 @@ function showSkeleton() {
 }
 
 window.loadPengajuanIzin = loadPengajuanIzin;
+
+window._bukaDokumenTabBaru = async function(idIzin, idDok) {
+    try {
+        const json = await apiFetch(`/api/hr/dokumen/${idIzin}/stream/${idDok}`);
+        if (json.status && json.data?.url) {
+            window.open(json.data.url, '_blank');
+        } else {
+            alert('Gagal membuka dokumen.');
+        }
+    } catch (e) {
+        alert('Gagal membuka dokumen.');
+    }
+};
