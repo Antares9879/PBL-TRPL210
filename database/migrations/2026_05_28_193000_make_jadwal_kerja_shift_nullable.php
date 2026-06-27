@@ -9,6 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // dropForeign by name dan column change tidak support di SQLite
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         Schema::table('jadwal_kerja', function (Blueprint $table) {
             $table->dropForeign('fk_jadwal_shift');
         });
@@ -27,6 +32,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         $fallbackShiftId = DB::table('shift')->orderBy('id_shift')->value('id_shift');
 
         if ($fallbackShiftId === null && DB::table('jadwal_kerja')->whereNull('id_shift')->exists()) {
