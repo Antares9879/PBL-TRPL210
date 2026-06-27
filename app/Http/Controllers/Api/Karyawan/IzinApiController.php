@@ -205,11 +205,11 @@ class IzinApiController extends Controller
      */
     public function uploadDokumen(UploadDokumenRequest $request, int $id): JsonResponse
     {
-        // ✅ Naikkan limit SEBELUM proses apapun
+        // Naikkan limit SEBELUM proses apapun
         set_time_limit(120);
         ini_set('memory_limit', '256M');
         
-        // ✅ Disable output buffering agar tidak ada corrupt response
+        // Disable output buffering agar tidak ada corrupt response
         if (ob_get_level()) ob_end_clean();
 
         $karyawan = Auth::user()->karyawan;
@@ -253,16 +253,15 @@ class IzinApiController extends Controller
             $folder   = "ecogreen/dokumen-izin/{$izin->id_izin}";
 
             // Upload via Facade dengan parameter yang VALID
-            $uploaded = Cloudinary::upload($file->getRealPath(), [
+            $uploaded = Cloudinary::uploadApi()->upload($file->getRealPath(), [
                 'folder'        => $folder,
                 'public_id'     => $fileName,
                 'resource_type' => 'auto',
                 'overwrite'     => true,
-                // HAPUS: 'sign_url', 'expires_at' — bukan parameter upload!
             ]);
 
-            $secureUrl = $uploaded->getSecurePath();
-            $publicId  = $uploaded->getPublicId();
+            $secureUrl = $uploaded['secure_url'];   // ApiResponse = array-accessible
+            $publicId  = $uploaded['public_id'];
 
             Log::info('Upload Cloudinary berhasil', [
                 'url'       => $secureUrl,
