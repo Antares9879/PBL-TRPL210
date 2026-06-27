@@ -55,7 +55,7 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 # Nginx config template (PORT akan disubstitusi saat runtime)
 RUN printf 'server {\n\
-    listen __PORT__;\n\
+    listen 8080;\n\
     root /var/www/html/public;\n\
     index index.php;\n\
     location / {\n\
@@ -82,9 +82,6 @@ autorestart=true\n' > /etc/supervisord.conf
 
 # Start script
 RUN printf '#!/bin/sh\n\
-sed -i "s/__PORT__/${PORT:-8080}/g" /etc/nginx/http.d/default.conf\n\
-echo "=== PORT: ${PORT} ==="\n\
-cat /etc/nginx/http.d/default.conf\n\
 php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan config:cache\n\
