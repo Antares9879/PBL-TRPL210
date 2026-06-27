@@ -91,7 +91,7 @@ class PlanningKerjaApiController extends Controller
         $tahun        = (int) $request->tahun;
         $idPerusahaan = $this->getIdPerusahaan();
         $namaBulan    = $this->getNamaBulan($bulan);
-        $jumlahHari   = cal_days_in_month(CAL_GREGORIAN, $bulan, $tahun);
+        $jumlahHari = \Carbon\Carbon::create($tahun, $bulan, 1)->daysInMonth;
 
         $karyawanList = Karyawan::where('id_perusahaan', $idPerusahaan)
             ->where('status', 'aktif')
