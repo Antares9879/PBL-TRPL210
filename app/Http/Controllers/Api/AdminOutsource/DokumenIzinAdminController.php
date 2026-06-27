@@ -54,22 +54,12 @@ class DokumenIzinAdminController extends Controller
      */
     public function stream(int $id, int $docId): JsonResponse|\Symfony\Component\HttpFoundation\StreamedResponse
     {
-        // Scope izin yang masih tahap validasi Admin:
-        // - status izin masih menunggu
-        // - jika wajib dokumen, status dokumen harus sudah_upload dan file sudah ada
+        // Hapus ->where('status', STATUS_MENUNGGU)
+        // Scope hanya berdasarkan karyawan dari perusahaan admin ini
         $izin = PengajuanIzin::whereHas(
             'karyawan',
             fn($q) => $q->where('id_perusahaan', $this->getIdPerusahaan())
         )
-        ->where('status', PengajuanIzin::STATUS_MENUNGGU)
-        ->where(function ($q) {
-            $q->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', false))
-                ->orWhere(function ($wajib) {
-                    $wajib->whereHas('jenisIzin', fn($jenis) => $jenis->where('wajib_dokumen', true))
-                        ->where('status_dokumen', PengajuanIzin::DOKUMEN_SUDAH_UPLOAD)
-                        ->whereHas('dokumen');
-                });
-        })
         ->find($id);
 
         if (! $izin) {
@@ -84,7 +74,7 @@ class DokumenIzinAdminController extends Controller
             ->where('id_izin', $izin->id_izin)
             ->first();
 
-       if (! $dokumen || ! $dokumen->path_file) {
+        if (! $dokumen || ! $dokumen->path_file) {
             return response()->json([
                 'status'  => false,
                 'message' => 'File dokumen tidak ditemukan.',
@@ -92,7 +82,6 @@ class DokumenIzinAdminController extends Controller
             ], 404);
         }
 
-        // path_file sekarang adalah Cloudinary URL — kembalikan ke client untuk di-render frontend
         return response()->json([
             'status'  => true,
             'message' => 'URL dokumen berhasil dimuat.',
