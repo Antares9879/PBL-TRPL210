@@ -529,6 +529,7 @@ async function handleUploadConfirm() {
 
     state.isUploading = true;
     setUploadLoading(true);
+    hideUploadAlert();
 
     const formData = new FormData();
     formData.append('dokumen', state.uploadFile);
@@ -539,8 +540,19 @@ async function handleUploadConfirm() {
             body:   formData,
         });
 
+        // Debug: log response untuk melihat struktur actual
+        console.log('Upload response:', res);
+
+        // Guard: pastikan response ada dan memiliki struktur yang valid
+        if (!res || typeof res !== 'object') {
+            console.error('Invalid response format:', res);
+            showUploadAlert('Respons server tidak valid. Silakan coba lagi.', 'error');
+            return;
+        }
+
         if (!res.status) {
-            showUploadAlert(res.message ?? 'Gagal mengunggah dokumen.', 'error');
+            const errorMsg = res.message || 'Gagal mengunggah dokumen.';
+            showUploadAlert(errorMsg, 'error');
             return;
         }
 
@@ -554,7 +566,9 @@ async function handleUploadConfirm() {
         loadRiwayatIzin(state.riwayatPage);
 
     } catch (err) {
-        showUploadAlert(err.message, 'error');
+        console.error('Upload error:', err);
+        const errorMsg = err?.message || 'Terjadi kesalahan saat mengunggah dokumen.';
+        showUploadAlert(errorMsg, 'error');
     } finally {
         state.isUploading = false;
         setUploadLoading(false);
