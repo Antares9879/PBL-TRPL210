@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Karyawan;
 
 use App\Http\Controllers\Controller;
+use App\Models\Absensi;
 use App\Models\JadwalKerja;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,7 +50,6 @@ class JadwalApiController extends Controller
 
         $jadwal = JadwalKerja::with([
             'shift:id_shift,nama_shift,jam_masuk,jam_pulang,durasi_normal_menit',
-            'absensi:id_absensi,id_jadwal,waktu_check_in,waktu_check_out,status_kehadiran,status_validasi,menit_telat,menit_kerja_normal',
         ])
         ->where('id_karyawan', $karyawan->id_karyawan)
         ->whereMonth('tanggal_kerja', $bulan)
@@ -58,8 +58,32 @@ class JadwalApiController extends Controller
         ->whereHas('planning', fn($q) => $q->where('status', 'aktif'))
         // ─────────────────────────────────────────────────────────────────
         ->orderBy('tanggal_kerja')
-        ->get()
-        ->map(fn($j) => $this->formatJadwal($j));
+        ->get();
+
+        // ── FIX: ambil absensi berdasarkan TANGGAL, bukan lewat relasi id_jadwal ──
+        // Kalau planning di-upload ulang di tengah hari setelah karyawan check-in,
+        // absensi tercatat terhadap id_jadwal milik planning LAMA (yang sudah
+        // nonaktif), sementara baris jadwal_kerja yang tampil di atas berasal dari
+        // planning BARU (id_jadwal berbeda). Relasi langsung jadwal->absensi jadi
+        // putus walau secara bisnis itu hari yang sama. Solusinya: cocokkan absensi
+        // ke jadwal berdasarkan tanggal, bukan berdasarkan id_jadwal yang terikat
+        // ke versi planning tertentu.
+        $absensiByTanggal = Absensi::select(
+                'id_absensi', 'id_jadwal', 'tanggal_absensi',
+                'waktu_check_in', 'waktu_check_out',
+                'status_kehadiran', 'status_validasi',
+                'menit_telat', 'menit_kerja_normal',
+            )
+            ->where('id_karyawan', $karyawan->id_karyawan)
+            ->whereMonth('tanggal_absensi', $bulan)
+            ->whereYear('tanggal_absensi', $tahun)
+            ->get()
+            ->keyBy(fn($a) => $a->tanggal_absensi->format('Y-m-d'));
+
+        $jadwal = $jadwal->map(fn($j) => $this->formatJadwal(
+            $j,
+            $absensiByTanggal->get($j->tanggal_kerja->format('Y-m-d')),
+        ));
 
         return response()->json([
             'status'  => true,
@@ -80,7 +104,6 @@ class JadwalApiController extends Controller
 
         $jadwal = JadwalKerja::with([
             'shift:id_shift,nama_shift,jam_masuk,jam_pulang,durasi_normal_menit',
-            'absensi',
         ])
         ->where('id_jadwal', $id)
         ->where('id_karyawan', $karyawan?->id_karyawan)
@@ -94,14 +117,19 @@ class JadwalApiController extends Controller
             ], 404);
         }
 
+        // ── FIX: sama seperti index(), cocokkan absensi via tanggal, bukan id_jadwal ──
+        $absensi = Absensi::where('id_karyawan', $karyawan->id_karyawan)
+            ->whereDate('tanggal_absensi', $jadwal->tanggal_kerja)
+            ->first();
+
         return response()->json([
             'status'  => true,
             'message' => 'Detail jadwal berhasil dimuat.',
-            'data'    => $this->formatJadwal($jadwal),
+            'data'    => $this->formatJadwal($jadwal, $absensi),
         ]);
     }
 
-    private function formatJadwal(JadwalKerja $j): array
+    private function formatJadwal(JadwalKerja $j, ?Absensi $absensi = null): array
     {
         return [
             'id_jadwal'      => $j->id_jadwal,
@@ -114,13 +142,13 @@ class JadwalApiController extends Controller
                 'jam_pulang'          => substr($j->shift->jam_pulang, 0, 5),
                 'durasi_normal_menit' => $j->shift->durasi_normal_menit,
             ] : null,
-            'absensi'        => $j->absensi ? [
-                'waktu_check_in'     => $j->absensi->waktu_check_in?->format('H:i'),
-                'waktu_check_out'    => $j->absensi->waktu_check_out?->format('H:i'),
-                'status_kehadiran'   => $j->absensi->status_kehadiran,
-                'status_validasi'    => $j->absensi->status_validasi,
-                'menit_telat'        => $j->absensi->menit_telat,
-                'menit_kerja_normal' => $j->absensi->menit_kerja_normal,
+            'absensi'        => $absensi ? [
+                'waktu_check_in'     => $absensi->waktu_check_in?->format('H:i'),
+                'waktu_check_out'    => $absensi->waktu_check_out?->format('H:i'),
+                'status_kehadiran'   => $absensi->status_kehadiran,
+                'status_validasi'    => $absensi->status_validasi,
+                'menit_telat'        => $absensi->menit_telat,
+                'menit_kerja_normal' => $absensi->menit_kerja_normal,
             ] : null,
         ];
     }

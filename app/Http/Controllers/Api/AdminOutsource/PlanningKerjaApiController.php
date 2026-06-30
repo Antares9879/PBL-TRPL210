@@ -11,6 +11,7 @@ use App\Models\Pengguna;
 use App\Models\AuditLog;
 use App\Services\AuditLogService;
 use App\Services\NotifikasiService;
+use Carbon\Carbon;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -502,15 +503,44 @@ class PlanningKerjaApiController extends Controller
 
         try {
             $planningBaru = DB::transaction(function () use ($request, $planningLama, $idPerusahaan, $admin) {
-                
-                // ── FIX: hapus jadwal_kerja dari planning lama sebelum arsipkan 
-                // Ini mencegah data duplikat jika filter planning aktif suatu saat
-                // tidak diterapkan, dan menghemat storage jangka panjang.
-                // CATATAN: jangan hapus jika ada absensi yang masih merujuk ke jadwal lama.
-                // Cukup arsipkan planning, biarkan jadwal lama tetap ada tapi
-                // tidak akan muncul karena filter status = aktif.
-                // ─────────────────────────────────────────────────────────────────
-                
+
+                // ── FIX: hapus jadwal_kerja milik planning lama yang BELUM punya absensi,
+                // KECUALI yang shift-nya sudah berakhir tanpa pernah dicek-in.
+                //
+                // Alasan pengecualian: alpa baru tercatat secara LAZY, saat karyawan
+                // mencoba check-in setelah jam pulang shift lewat (lihat
+                // AbsensiService::checkIn()) — bukan lewat job terjadwal. Kalau baris
+                // jadwal_kerja untuk shift yang sudah lewat dan belum sempat memicu alpa
+                // ini ikut terhapus saat upload ulang, bukti bahwa karyawan tidak hadir
+                // di shift tersebut hilang tanpa jejak, dan karyawan bisa check-in "bersih"
+                // di bawah shift baru seolah tidak pernah ada masalah. Baris yang dikecualikan
+                // ini tetap aman dari ambiguitas duplikat karena sudah difilter oleh
+                // whereHas('planning', status aktif) di checkIn()/index()/show().
+                $kandidatHapus = JadwalKerja::with('shift')
+                    ->where('id_planning', $planningLama->id_planning)
+                    ->where('tanggal_kerja', '>=', today())
+                    ->whereDoesntHave('absensi')
+                    ->get()
+                    ->reject(function ($j) {
+                        if (! $j->shift) {
+                            return false; // tidak ada info shift → aman dihapus
+                        }
+
+                        $tgl        = $j->tanggal_kerja->format('Y-m-d');
+                        $jamMasuk   = Carbon::parse("{$tgl} {$j->shift->jam_masuk}");
+                        $jamPulang  = Carbon::parse("{$tgl} {$j->shift->jam_pulang}");
+
+                        // Shift malam: jam_pulang jatuh keesokan harinya
+                        if ($jamPulang->lte($jamMasuk)) {
+                            $jamPulang->addDay();
+                        }
+
+                        // true → shift sudah berakhir → JANGAN dihapus (reject = keluarkan dari daftar hapus)
+                        return now()->gte($jamPulang);
+                    });
+
+                JadwalKerja::whereIn('id_jadwal', $kandidatHapus->pluck('id_jadwal'))->delete();
+
                 $planningLama->update(['status' => PlanningKerja::STATUS_DIPERBARUI]);
                 
                 $baru = PlanningKerja::create([
