@@ -200,20 +200,6 @@
                     </div>
                 </div>
 
-                {{-- Remember me --}}
-                <label class="login-remember">
-                    <input id="remember-me"
-                           name="remember"
-                           type="checkbox"
-                           class="login-remember-input">
-                    <span class="login-remember-box" aria-hidden="true">
-                        <svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </span>
-                    <span class="login-remember-label">Ingat saya</span>
-                </label>
-
                 {{-- Submit --}}
                 <button id="btn-login" type="button" class="login-btn" aria-live="polite">
                     <span id="btn-login-text">Masuk ke Sistem</span>
