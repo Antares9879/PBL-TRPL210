@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const email    = emailInput.value.trim();
         const password = passwordInput.value;
-        const remember = rememberCheckbox.checked;
+        const remember = rememberCheckbox?.checked ?? false;
 
         // Validasi sisi klien
         let hasError = false;
