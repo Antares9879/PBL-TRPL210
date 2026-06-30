@@ -65,10 +65,16 @@ class AbsensiService
         }
 
         // Cari jadwal aktif hari ini
+        // FIX: filter ke planning yang berstatus aktif. Tanpa ini, jika ada
+        // sisa jadwal_kerja dari planning lama yang belum sempat dihapus
+        // (mis. data lama sebelum fix ini diterapkan, atau perubahan data
+        // manual via DB), checkIn() bisa mengambil jadwal dari planning
+        // yang sudah tidak berlaku.
         $jadwal = JadwalKerja::with('shift')
             ->where('id_karyawan', $karyawan->id_karyawan)
             ->whereDate('tanggal_kerja', today())
             ->where('is_hari_libur', false)
+            ->whereHas('planning', fn ($q) => $q->where('status', 'aktif'))
             ->first();
 
         if (! $jadwal) {
